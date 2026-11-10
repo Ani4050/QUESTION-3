@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "name": "smart-traffic-light-fsm",
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
+

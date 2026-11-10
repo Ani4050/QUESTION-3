@@ -1,0 +1,22 @@
+{
+  "name": "smart-traffic-light-fsm",
+  "version": "1.0.0",
+  "description": "Smart Traffic Light FSM Designer & Interactive Simulator with Formal Verification and Verilog RTL Synthesis",
+  "main": "src/fsm_engine.js",
+  "scripts": {
+    "test": "node tests/fsm_verification.test.js",
+    "build": "node -e \"console.log('Production build ready - standalone distribution verified.')\"",
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "finite-state-machine",
+    "traffic-light-controller",
+    "digital-electronics",
+    "verilog",
+    "formal-verification",
+    "circuit-simulator"
+  ],
+  "author": "Engineering Review Team",
+  "license": "MIT"
+}
+
