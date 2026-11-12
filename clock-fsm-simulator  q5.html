@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI-Powered 24-Hour Digital Clock FSM Simulator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<style>
+:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#070b12;--p:#0d1522;--p2:#111d2f;--b:#1b2a3d;--t:#cfe3f5;--m:#7f93a8;--c:#22d3ee;--a:#fbbf24;--g:#34d399;--r:#f87171}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--t);font:14px/1.5 Inter,system-ui,sans-serif}
+body{background:radial-gradient(900px 500px at 15% -10%,#0e2a44 0,transparent 60%),radial-gradient(700px 400px at 100% 0,#1a1440 0,transparent 55%),var(--bg);min-height:100vh}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:clamp(20px,3vw,30px);margin:0;letter-spacing:.3px;background:linear-gradient(90deg,#fff,var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--m);margin:4px 0 18px;font-size:13px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}.full{grid-column:1/-1}
+.card{background:linear-gradient(180deg,var(--p2),var(--p));border:1px solid var(--b);border-radius:14px;padding:16px;box-shadow:0 10px 30px #0006;animation:in .5s both}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.card h2{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:1.6px;color:var(--m);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.clock{font:600 clamp(40px,8vw,76px)/1 'SF Mono',Consolas,monospace;text-align:center;color:#fff;text-shadow:0 0 24px var(--c);letter-spacing:2px}
+.clock i{color:var(--c);font-style:normal;animation:bl 1s infinite}@keyframes bl{50%{opacity:.25}}
+.btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 4px}
+button,select{background:#13243a;color:var(--t);border:1px solid var(--b);border-radius:9px;padding:8px 14px;font:inherit;cursor:pointer;transition:.2s}
+button:hover{border-color:var(--c);box-shadow:0 0 14px #22d3ee44;transform:translateY(-1px)}button.pri{background:linear-gradient(135deg,#0e7490,#0891b2);border-color:#22d3ee}button.act{border-color:var(--c);color:var(--c)}
+.bits{display:grid;grid-template-columns:44px 1fr;gap:6px 10px;align-items:center;margin-top:14px}.bits b{font-size:11px;color:var(--m)}
+.led{display:inline-flex;flex-direction:column;align-items:center;margin-right:7px;font-size:9px;color:var(--m)}.led u{width:15px;height:15px;border-radius:50%;background:#14202c;border:1px solid var(--b);margin-bottom:2px;transition:.25s}.led.on u{background:var(--c);box-shadow:0 0 12px var(--c)}
+.rings{display:flex;justify-content:space-around;flex-wrap:wrap;gap:6px}.ring{text-align:center;width:118px;font-size:11px;color:var(--m)}.rc{fill:#26384e;transition:.3s}.rc.nx{fill:#4a6a8a}.rt{fill:#fff;font:600 17px monospace}
+.casc{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:12px 0;font-size:12px}.node{padding:6px 12px;border:1px solid var(--b);border-radius:8px;background:#0a1320;transition:.25s}.node.on{border-color:var(--a);color:var(--a);box-shadow:0 0 14px #fbbf2455}.arr{color:var(--m)}.arr.on{color:var(--a);text-shadow:0 0 8px var(--a)}
+.tr{font:12px monospace;padding:6px 10px;border-left:3px solid var(--b);margin:5px 0;background:#0a1320;border-radius:0 6px 6px 0}.tr.hot{border-color:var(--a);color:var(--a)}.log{max-height:170px;overflow:auto}.log div{animation:in .3s}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs button{padding:5px 12px;font-size:12px}
+svg{display:block;width:100%}.w{fill:none;stroke:#1d3249;stroke-width:2;stroke-linejoin:round}.w.on{stroke:var(--c);filter:drop-shadow(0 0 3px var(--c));stroke-dasharray:7 4;animation:fl .55s linear infinite}.w.on.am{stroke:var(--a);filter:drop-shadow(0 0 3px var(--a))}@keyframes fl{to{stroke-dashoffset:-11}}
+.g path{fill:#0b1626;stroke:#3a5575;stroke-width:1.5;transition:.25s}.g.on path{stroke:var(--g);filter:drop-shadow(0 0 4px var(--g))}.g text,.ff text,.sv{fill:var(--t);font:10px monospace;text-anchor:middle}.sv{fill:var(--m);text-anchor:start}
+.ff{cursor:pointer}.ff rect{fill:#0b1626;stroke:#3a5575;stroke-width:1.5;transition:.25s}.ff:hover rect{stroke:var(--c)}.ff.on rect{stroke:var(--c);fill:#082433;filter:drop-shadow(0 0 7px var(--c))}.ff .q{font:700 20px monospace;fill:var(--c)}
+.sc{overflow-x:auto}.sc svg{min-width:760px}
+table{width:100%;border-collapse:collapse;font:12px monospace}th,td{padding:5px 8px;border-bottom:1px solid var(--b);text-align:center}th{color:var(--m);font-weight:500}tr.cur td{background:#0e2a3a;color:var(--c)}.ok{color:var(--g)}.bad{color:var(--r)}
+tr.clk{cursor:pointer}tr.clk:hover td{background:#13243a}
+pre,.eq{background:#08111d;border:1px solid var(--b);border-radius:8px;padding:10px;font:12px/1.6 monospace;overflow:auto;white-space:pre-wrap;margin:6px 0;color:#9be7f5}
+.chat{height:300px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}.msg{padding:9px 12px;border-radius:10px;max-width:92%;white-space:pre-wrap;animation:in .3s;font-size:13px}.msg.a{background:#0e2236;border:1px solid var(--b)}.msg.u{background:#0e7490;align-self:flex-end}
+.row{display:flex;gap:8px;margin-top:10px}.row input{flex:1;background:#08111d;border:1px solid var(--b);border-radius:9px;padding:8px 12px;color:var(--t);font:inherit}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.chips button{font-size:11px;padding:4px 10px;border-radius:20px}
+.badge{padding:2px 9px;border-radius:20px;font-size:11px;border:1px solid}.small{font-size:12px;color:var(--m)}
+</style></head><body><div id="root"></div>
+<script>
+const {useState,useEffect,useRef,useMemo}=React;const html=htm.bind(React.createElement);
+const CFG={s:{n:6,tc:[0,1,3,4,5],mod:60,name:'SEC',v:59},m:{n:6,tc:[0,1,3,4,5],mod:60,name:'MIN',v:59},h:{n:5,tc:[0,1,2,4],mod:24,name:'HR',v:23}};
+const toBits=(v,n)=>Array.from({length:n},(_,i)=>(v>>i)&1),toInt=b=>b.reduce((a,x,i)=>a|x<<i,0),pad=v=>String(v).padStart(2,'0');
+const mk=(h,m,s)=>({s:toBits(s,6),m:toBits(m,6),h:toBits(h,5)});
+const val=st=>[toInt(st.h),toInt(st.m),toInt(st.s)],fmt=st=>val(st).map(pad).join(':');
+// Combinational logic + flip-flop characteristic equations (D / T / JK)
+function evalC(q,en,tc,ff){const n=q.length,c=[en];for(let i=1;i<n;i++)c[i]=c[i-1]&q[i-1];
+ const term=tc.every(i=>q[i])?1:0,W=en&term,x=[],d=[],nxt=[],ins=[];
+ for(let i=0;i<n;i++){x[i]=q[i]^c[i];d[i]=(1-W)&x[i];
+  if(ff==='D'){ins[i]=d[i];nxt[i]=d[i]}
+  else if(ff==='T'){const T=(W&q[i])|((1-W)&c[i]);ins[i]=T;nxt[i]=q[i]^T}
+  else{const J=(1-W)&c[i],K=W|c[i];ins[i]=[J,K];nxt[i]=(J&(1-q[i]))|((1-K)&q[i])}}
+ return{c,x,d,W,term,nxt,ins}}
+function evalAll(st,en,ff){const s=evalC(st.s,en,CFG.s.tc,ff),m=evalC(st.m,s.W,CFG.m.tc,ff),h=evalC(st.h,m.W,CFG.h.tc,ff);return{s,m,h}}
+const latch=e=>({s:e.s.nxt,m:e.m.nxt,h:e.h.nxt});
+function verify(ff){let st=mk(0,0,0),bad=0;for(let t=0;t<86400;t++){st=latch(evalAll(st,1,ff));const[h,m,s]=val(st);if(h*3600+m*60+s!==(t+1)%86400)bad++}return{bad,closed:fmt(st)==='00:00:00'}}
+const CASES=[[0,0,58],[0,0,59],[0,59,59],[9,59,59],[12,34,59],[23,0,59],[23,59,59]];
+const eqs=(k,ff)=>{const C=CFG[k],t=i=>i?'EN·'+Array.from({length:i},(_,j)=>'Q'+j).join('·'):'EN';
+ return[`W = EN·${C.tc.map(i=>'Q'+i).join('·')}   (terminal count ${C.v})`,...Array.from({length:C.n},(_,i)=>ff==='D'?`D${i} = ¬W·(Q${i} ⊕ ${t(i)})`:ff==='T'?`T${i} = W·Q${i} + ¬W·${t(i)}`:`J${i} = ¬W·${t(i)}    K${i} = W + ${t(i)}`)]};
+const verilog=k=>{const C=CFG[k],n=C.n,nm=C.name.toLowerCase();return`module cnt_${nm}(input clk, rst, en, output w, output reg [${n-1}:0] q);
+  wire [${n-1}:0] t;                       // toggle conditions
+  assign t[0] = en;
+${Array.from({length:n-1},(_,i)=>`  assign t[${i+1}] = t[${i}] & q[${i}];`).join('\n')}
+  assign w = en & ${C.tc.map(i=>'q['+i+']').join(' & ')};   // ${C.v}
+  wire [${n-1}:0] d = ~{${n}{w}} & (q ^ t);  // D = ~W & (Q ^ T)
+  always @(posedge clk) q <= rst ? 0 : d;
+endmodule`};
+function ai(q,x){q=q.toLowerCase();const{st,ev,ff,sel}=x,[h,m,s]=val(st),nx=val(latch(ev));const C=CFG[sel];
+ if(/verilog|generate|logic|equation|circuit|gate/.test(q))return`Generated ${C.name} counter logic (${ff} flip-flops):\n\n${eqs(sel,ff).join('\n')}\n\nVerilog (D-FF form):\n${verilog(sel)}`;
+ if(/derive|state|table|fsm|encode/.test(q))return`FSM derivation\n1) A 24 h clock is three cascaded Moore FSMs: SEC (S0..S59), MIN (S0..S59), HR (S0..S23).\n2) Flip-flops needed = ⌈log2 N⌉: 6 + 6 + 5 = 17, giving 60·60·24 = 86,400 composite states.\n3) Transition rule: S(k) → S(k+1) when EN=1; S(max) → S0 and asserts W (carry) to the next stage.\n4) Terminal-count detect: 59 = 111011₂, bit 2 is don’t-care because 60..63 are never reached → W = EN·Q0·Q1·Q3·Q4·Q5. 23 = 10111₂ → W = EN·Q0·Q1·Q2·Q4.\n5) Excitation: D = ¬W·(Q ⊕ T), T = EN·Q0…Q(i-1).\nOpen the Tables panel to see these evaluated live.`;
+ if(/roll|23|59|wrap|carry/.test(q))return`Rollover chain: SEC=59 sets W_s=1, which is EN for MIN. MIN=59 and EN_m=1 sets W_m=1, enabling HR. HR=23 with EN_h=1 sets W_h=1 and the day wraps 23:59:59 → 00:00:00. In every case ¬W masks the D inputs to 0, so all bits clear on the same clock edge.\nNow: W_s=${ev.s.W}, W_m=${ev.m.W}, W_h=${ev.h.W}.`;
+ if(/jk|\bt\b|flip|ff|why/.test(q))return`D: D = ¬W·(Q⊕T), simplest, next state is the input.\nT: T = W·Q + ¬W·t, toggles exactly the bits that change (counter-natural).\nJK: J = ¬W·t, K = W + t. J=0,K=1 resets on wrap; J=K=t toggles; J=K=0 holds.\nAll three are verified exhaustively over 86,400 states (Verification panel). Active now: ${ff}.`;
+ return`Current state ${pad(h)}:${pad(m)}:${pad(s)}. Next clock edge → ${nx.map(pad).join(':')}.\nSEC: S${s} → S${nx[2]}${ev.s.W?'  [terminal count: W_s=1, carry to MIN]':''}\nMIN: S${m} → S${nx[1]}${ev.s.W?(ev.m.W?'  [also terminal: W_m=1, carry to HR]':'  [EN=1, increments]'):'  [EN=0, holds]'}\nHR : S${h} → S${nx[0]}${ev.m.W?(ev.h.W?'  [W_h=1: day wraps]':'  [EN=1, increments]'):'  [EN=0, holds]'}\nTry: “derive the FSM”, “generate logic”, “explain rollover”, “compare flip-flops”.`}
+const Wr=({p,on,am})=>html`<polyline points=${p.map(a=>a.join(',')).join(' ')} class=${'w'+(on?' on':'')+(am?' am':'')}/>`;
+const G=({x,y,t,a})=>html`<g class=${'g'+(a?' on':'')} transform=${`translate(${x},${y})`}><path d=${t==='x'?'M0,0Q10,16 0,32M5,0H16Q32,0 38,16Q32,32 16,32H5Q15,16 5,0Z':'M0,0H20A16,16 0 0 1 20,32H0Z'}/><text x=${t==='x'?20:14} y="20">${t==='x'?'=1':'&'}</text></g>`;
+function Circuit({k,ev,st,clk,ff,toggle}){const C=CFG[k],n=C.n,e=ev[k],q=st[k],cx=i=>90+i*118,xR=cx(n-1)+60,nW=1-e.W,E=e.c[0],o=[];
+ const w=(p,a,am)=>o.push(html`<${Wr} p=${p} on=${a} am=${am}/>`);
+ w([[12,52],[cx(0)+12,52]],E);w([[12,52],[12,388],[28,388]],E);
+ for(let i=0;i<n;i++){const X=cx(i),Xn=X+118,Q=q[i];
+  if(i>0)o.push(html`<${G} x=${X-24} y="36" t="a" a=${e.c[i]}/>`);
+  if(i<n-1){w([[X+12,52],[Xn-36,52],[Xn-36,44],[Xn-24,44]],e.c[i]);w([[X+18,282],[X+46,282],[X+46,76],[Xn-36,76],[Xn-36,60],[Xn-24,60]],Q)}
+  w([[X+12,52],[X+24,52],[X+24,92],[X-38,92],[X-38,118],[X-24,118]],e.c[i]);
+  w([[X+18,262],[X+18,282],[X-52,282],[X-52,134],[X-24,134]],Q);
+  o.push(html`<${G} x=${X-24} y="110" t="x" a=${e.x[i]}/>`);
+  w([[X+12,126],[X+22,126],[X+22,150],[X-38,150],[X-38,168],[X-24,168]],e.x[i]);
+  w([[X-44,330],[X-44,184],[X-24,184]],nW,1);o.push(html`<${G} x=${X-24} y="160" t="a" a=${e.d[i]}/>`);
+  w([[X+12,176],[X+12,194],[X,194],[X,212]],e.d[i]);w([[X-14,262],[X-14,306]],clk);
+  if(C.tc.includes(i))w([[X-52,282],[X-52,372]],Q);
+  o.push(html`<g class=${'ff'+(Q?' on':'')} onClick=${()=>toggle(k,i)}><rect x=${X-30} y="212" width="60" height="50" rx="7"/><text x=${X-22} y="226">${ff==='JK'?'D*':ff}</text><text x=${X+22} y="258" style=${{fontSize:9}}>Q</text><text class="q" x=${X} y="244">${Q}</text><path d=${`M${X-30},248l8,5-8,5`} class="w" style=${{stroke:'#3a5575'}}/><title>Click to toggle Q${i}</title></g>`);
+  o.push(html`<text class="sv" x=${X-28} y="205">${C.name[0]}${i}</text>`)}
+ w([[cx(0)-14,306],[cx(n-1)-14,306]],clk);w([[cx(0)-44,330],[xR-34,330]],nW,1);
+ o.push(html`<text class="sv" x=${cx(0)-44} y="324">CLK bus (shared) · ¬W bus</text>`);
+ o.push(html`<rect x="28" y="372" width=${xR-88} height="34" rx="6" style=${{fill:'#0b1626',stroke:e.term?'#fbbf24':'#3a5575'}}/><text x=${(xR-60+28)/2} y="393" style=${{fill:e.term?'#fbbf24':'#cfe3f5',font:'11px monospace',textAnchor:'middle'}}>TC DETECT: EN · ${C.tc.map(i=>'Q'+i).join('·')} = ${C.v}</text>`);
+ w([[xR-60,389],[xR,389],[xR,330],[xR-24,330]],e.W,1);
+ o.push(html`<path d=${`M${xR-24},320 v20 l-18,-10z`} class="w on" style=${{stroke:e.W?'#fbbf24':'#3a5575',animation:'none',filter:'none'}}/><text class="sv" x=${xR-62} y="422">W=${e.W} → carry out</text><text class="sv" x="2" y="42">EN</text>`);
+ return html`<div class="sc"><svg viewBox=${`0 0 ${xR+40} 430`}>${o}</svg></div>`}
+const Ring=({n,v,label,col})=>html`<div class="ring"><svg viewBox="-60 -60 120 120">${Array.from({length:n},(_,i)=>{const a=i/n*6.2832-1.5708,c=i===v;return html`<circle cx=${46*Math.cos(a)} cy=${46*Math.sin(a)} r=${c?4.5:1.9} class=${'rc'+(i===(v+1)%n?' nx':'')} style=${c?{fill:col,filter:`drop-shadow(0 0 5px ${col})`}:null}/>`})}<text y="6" text-anchor="middle" class="rt">${pad(v)}</text></svg>${label}</div>`;
+const Leds=({b})=>html`<span>${[...b].reverse().map((x,i)=>html`<span class=${'led'+(x?' on':'')}><u></u>${b.length-1-i}</span>`)}</span>`;
+function App(){
+ const[st,setSt]=useState(mk(0,0,0)),[run,setRun]=useState(false),[spd,setSpd]=useState(1),[ff,setFf]=useState('D'),[sel,setSel]=useState('s'),[tab,setTab]=useState('st'),[clk,setClk]=useState(false),[log,setLog]=useState([]),[ver,setVer]=useState(null),[msgs,setMsgs]=useState([{r:'a',t:'I’m the built-in logic assistant. I read the live FSM and generate equations/Verilog from the same model the simulator runs (a local rule-based engine, not a remote LLM). Ask me anything below.'}]),[inp,setInp]=useState('');
+ const ffR=useRef(ff),prev=useRef(st);ffR.current=ff;
+ const ev=useMemo(()=>evalAll(st,1,ff),[st,ff]);
+ const tick=()=>{setSt(p=>latch(evalAll(p,1,ffR.current)));setClk(true);setTimeout(()=>setClk(false),200)};
+ useEffect(()=>{if(!run)return;const id=setInterval(tick,1000/spd);return()=>clearInterval(id)},[run,spd]);
+ useEffect(()=>{const p=prev.current;if(p===st)return;prev.current=st;const e=evalAll(p,1,ffR.current),tags=[e.s.W&&'SEC 59→00',e.m.W&&'MIN 59→00',e.h.W&&'HR 23→00'].filter(Boolean);
+  setLog(l=>[{id:Math.random(),t:`${fmt(p)} → ${fmt(st)}`,tags,hot:tags.length>0},...l].slice(0,40))},[st]);
+ const runVer=()=>{setVer(null);setTimeout(()=>setVer(['D','T','JK'].map(f=>[f,verify(f)])),40)};useEffect(runVer,[]);
+ const toggle=(k,i)=>setSt(p=>({...p,[k]:p[k].map((b,j)=>j===i?1-b:b)}));
+ const reset=()=>{setRun(false);setSt(mk(0,0,0));setLog([]);prev.current=null;setTimeout(()=>prev.current=null,0)};
+ useEffect(()=>{if(prev.current===null)prev.current=st},[st]);
+ const[H,M,S]=val(st),ill=[S>59,M>59,H>23].some(Boolean);
+ const send=t=>{if(!t.trim())return;setMsgs(m=>[...m,{r:'u',t}]);setInp('');const x={st,ev,ff,sel};setTimeout(()=>setMsgs(m=>[...m,{r:'a',t:ai(t,x)}]),350)};
+ const chatEnd=useRef();useEffect(()=>{const c=chatEnd.current;if(c)c.scrollTop=c.scrollHeight},[msgs]);
+ const C=CFG[sel],cur=toInt(st[sel]);
+ const rows=[...new Set([cur,(cur+1)%C.mod,(cur+2)%C.mod,C.mod-2,C.mod-1,0])].filter(v=>v<C.mod);
+ const bs=b=>[...b].reverse().join('');
+ const live=[['s',S,ev.s,1],['m',M,ev.m,ev.s.W],['h',H,ev.h,ev.m.W]];
+ const cases=useMemo(()=>CASES.map(([h,m,s])=>{const a=mk(h,m,s),e=evalAll(a,1,ff),n=val(latch(e)),t=(h*3600+m*60+s+1)%86400,x=[Math.floor(t/3600),Math.floor(t%3600/60),t%60],xw=[s===59,s===59&&m===59,s===59&&m===59&&h===23].map(Number);
+  return{a,from:fmt(a),to:n.map(pad).join(':'),exp:x.map(pad).join(':'),w:[e.s.W,e.m.W,e.h.W],ok:n.join()===x.join()&&[e.s.W,e.m.W,e.h.W].join()===xw.join()}}),[ff]);
+ const tt=[];for(const q of[0,1])for(const t of[0,1])for(const W of[0,1])tt.push([q,t,W,(1-W)&(q^t),(W&q)|((1-W)&t),(1-W)&t,W|t]);
+ return html`<div class="wrap">
+ <h1>AI-Powered 24-Hour Digital Clock FSM Simulator</h1>
+ <p class="sub">17 real flip-flops · cascaded Mod-60 / Mod-60 / Mod-24 synchronous FSMs · every tick is computed from the gate equations shown below</p>
+ <div class="grid">
+ <div class="card"><h2>Clock core <span class=${'badge '+(ill?'bad':'ok')}>${ill?'ILLEGAL STATE (self-corrects)':run?'RUNNING':'HALTED'}</span></h2>
+  <div class="clock">${pad(H)}<i>:</i>${pad(M)}<i>:</i>${pad(S)}</div>
+  <div class="btns"><button class="pri" onClick=${()=>setRun(true)}>▶ Start</button><button onClick=${()=>setRun(false)}>❚❚ Pause</button><button onClick=${()=>{setRun(false);tick()}}>⏭ Step</button><button onClick=${reset}>↺ Reset</button></div>
+  <div class="btns"><select value=${spd} onChange=${e=>setSpd(+e.target.value)}>${[1,5,20,60].map(v=>html`<option value=${v}>${v} tick/s</option>`)}</select>
+  <button onClick=${()=>{setSt(mk(23,59,55))}}>Load 23:59:55</button><button onClick=${()=>setSt(mk(11,58,58))}>Load 11:58:58</button></div>
+  <div class="tabs" style=${{justifyContent:'center'}}>${['D','T','JK'].map(f=>html`<button class=${ff===f?'act':''} onClick=${()=>setFf(f)}>${f} flip-flop</button>`)}</div>
+  <div class="bits"><b>HR Q4..0</b><${Leds} b=${st.h}/><b>MIN Q5..0</b><${Leds} b=${st.m}/><b>SEC Q5..0</b><${Leds} b=${st.s}/></div></div>
+ <div class="card"><h2>Live FSM <span class="small">state → next state</span></h2>
+  <div class="rings"><${Ring} n=${60} v=${S} label="SEC FSM" col="#22d3ee"/><${Ring} n=${60} v=${M} label="MIN FSM" col="#a78bfa"/><${Ring} n=${24} v=${H} label="HR FSM" col="#34d399"/></div>
+  <div class="casc"><span class="node on">CLK 1 Hz</span><span class="arr on">→</span><span class=${'node'+(ev.s.W?' on':'')}>SEC W=${ev.s.W}</span><span class=${'arr'+(ev.s.W?' on':'')}>→ EN →</span><span class=${'node'+(ev.m.W?' on':'')}>MIN W=${ev.m.W}</span><span class=${'arr'+(ev.m.W?' on':'')}>→ EN →</span><span class=${'node'+(ev.h.W?' on':'')}>HR W=${ev.h.W}</span></div>
+  ${live.map(([k,v,e,en])=>html`<div class=${'tr'+(e.W?' hot':'')}>${CFG[k].name}: S${v} [${bs(st[k])}] —EN=${en}→ S${toInt(e.nxt)} [${bs(e.nxt)}]${e.W?'  ⟲ rollover, W=1':''}</div>`)}
+  <div class="log">${log.length?log.slice(0,6).map(l=>html`<div key=${l.id} class=${'tr'+(l.hot?' hot':'')}>${l.t} ${l.tags.join(' · ')}</div>`):html`<div class="small">Awaiting clock edge…</div>`}</div></div>
+ <div class="card full"><h2>Digital circuit <span class="tabs">${Object.keys(CFG).map(k=>html`<button class=${sel===k?'act':''} onClick=${()=>setSel(k)}>${CFG[k].name} counter</button>`)}</span></h2>
+  <${Circuit} k=${sel} ev=${ev} st=${st} clk=${clk} ff=${ff} toggle=${toggle}/>
+  <div class="small">Cyan = logic 1, amber = terminal count / ¬W mask. Click any flip-flop to toggle its Q. Drawn as the D-FF realisation (D=¬W·(Q⊕T)); selecting T or JK swaps the excitation equations used by the engine, which the Equations tab lists. EN${sel==='s'?' = 1 Hz tick':sel==='m'?' = SEC.W':' = MIN.W'} = ${ev[sel].c[0]}.</div></div>
+ <div class="card"><h2>Tables <span class="tabs">${[['st','State table'],['tt','Truth table'],['eq','Equations']].map(([k,l])=>html`<button class=${tab===k?'act':''} onClick=${()=>setTab(k)}>${l}</button>`)}</span></h2>
+  ${tab==='st'&&html`<div class="small">${C.name} FSM (${C.n} FFs, mod ${C.mod}), EN=1, ${ff}-FF engine</div><table><tr><th>Present</th><th>Q${C.n-1}..Q0</th><th>W</th><th>Next</th><th>Q⁺</th></tr>${rows.map(r=>{const e=evalC(toBits(r,C.n),1,C.tc,ff);return html`<tr class=${r===cur?'cur':''}><td>S${r}</td><td>${bs(toBits(r,C.n))}</td><td>${e.W}</td><td>S${toInt(e.nxt)}</td><td>${bs(e.nxt)}</td></tr>`})}</table>`}
+  ${tab==='tt'&&html`<div class="small">Per-bit excitation (t = EN·Q0…Q(i-1), W = wrap)</div><table><tr><th>Q</th><th>t</th><th>W</th><th>D</th><th>T</th><th>J</th><th>K</th></tr>${tt.map(r=>html`<tr>${r.map(c=>html`<td>${c}</td>`)}</tr>`)}</table><div class="small">W=1 ⇒ next Q = 0 in all three implementations.</div>`}
+  ${tab==='eq'&&html`<div class="eq">${eqs(sel,ff).join('\n')}</div><div class="small">D: next state = input. T: toggles only changing bits. JK: J=0,K=1 clears on wrap, J=K=t toggles, J=K=0 holds. 59₁₀=111011₂ (Q2 don’t-care, 60–63 unreachable); 23₁₀=10111₂ (Q3 don’t-care).</div>`}</div>
+ <div class="card"><h2>Automatic verification <button onClick=${runVer}>Re-run</button></h2>
+  ${ver?html`<table><tr><th>FF</th><th>86,400 transitions</th><th>Mismatch</th><th>Closes 00:00:00</th></tr>${ver.map(([f,r])=>html`<tr><td>${f}</td><td>${r.bad?html`<span class="bad">FAIL</span>`:html`<span class="ok">PASS</span>`}</td><td>${r.bad}</td><td class=${r.closed?'ok':'bad'}>${r.closed?'yes':'no'}</td></tr>`)}</table>`:html`<div class="small">Running exhaustive check…</div>`}
+  <div class="small" style=${{margin:'10px 0 4px'}}>Rollover cases (${ff} engine). Click a row to load it.</div>
+  <table><tr><th>From</th><th>Engine</th><th>Expected</th><th>W s/m/h</th><th></th></tr>${cases.map(c=>html`<tr class="clk" onClick=${()=>setSt(c.a)}><td>${c.from}</td><td>${c.to}</td><td>${c.exp}</td><td>${c.w.join('/')}</td><td class=${c.ok?'ok':'bad'}>${c.ok?'✓':'✗'}</td></tr>`)}</table></div>
+ <div class="card full"><h2>AI logic assistant <span class="small">reads live FSM state</span></h2>
+  <div class="chat" ref=${chatEnd}>${msgs.map(m=>html`<div class=${'msg '+m.r}>${m.t}</div>`)}</div>
+  <div class="chips">${['Explain current transition','Derive the FSM states','Generate circuit logic','Explain rollover','Compare D, T and JK'].map(t=>html`<button onClick=${()=>send(t)}>${t}</button>`)}</div>
+  <div class="row"><input value=${inp} placeholder="Ask about states, carries, flip-flops, Verilog…" onInput=${e=>setInp(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&send(inp)}/><button class="pri" onClick=${()=>send(inp)}>Send</button></div></div>
+ </div></div>`}
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script></body></html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Parking Barrier Controller · Moore FSM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#070b14;--p:#0e1626;--b:#22314d;--t:#d8e3f7;--m:#7d8fb0;--a:#2f9bff;--a2:#00e5ff;--g:#2ee59d;--r:#ff4d6a;--y:#ffc857;--dur:.7s;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{margin:0;background:radial-gradient(1200px 500px at 70% -10%,#10234a,transparent),var(--bg);color:var(--t);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+nav{position:sticky;top:0;z-index:5;display:flex;gap:4px;overflow-x:auto;padding:10px 14px;background:#070b14e6;backdrop-filter:blur(8px);border-bottom:1px solid var(--b)}
+nav a{color:var(--m);text-decoration:none;padding:6px 12px;border-radius:8px;white-space:nowrap;font-size:14px;transition:.2s}nav a:hover{color:#fff;background:#16233d}
+main{max-width:1180px;margin:auto;padding:0 16px 60px}
+section{padding-top:34px;animation:up .6s both}@keyframes up{from{opacity:0;transform:translateY(14px)}}
+h1{font-size:clamp(26px,4vw,40px);margin:30px 0 6px}h1 span{color:var(--a2)}h2{margin:0 0 12px;font-size:22px}h2:before{content:"";display:inline-block;width:8px;height:20px;background:var(--a);border-radius:3px;margin-right:10px;vertical-align:-3px;box-shadow:0 0 12px var(--a)}
+h3{margin:14px 0 6px;font-size:15px;color:var(--a2)}p,li{color:#b9c7e2}.card{background:var(--p);border:1px solid var(--b);border-radius:14px;padding:16px;margin:10px 0}
+.g2{display:grid;grid-template-columns:1.25fr 1fr;gap:14px}@media(max-width:900px){.g2{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid var(--b);padding:5px 8px;text-align:left}th{color:var(--a2);font-weight:600;position:sticky;top:0;background:var(--p)}
+.sc{overflow:auto;max-height:440px}.mono,code{font-family:ui-monospace,Menlo,Consolas,monospace}code{color:var(--a2);font-size:13px}
+button,select{background:#13213b;color:var(--t);border:1px solid #2b4170;border-radius:9px;padding:8px 14px;font:inherit;cursor:pointer;transition:.15s}button:hover{border-color:var(--a);box-shadow:0 0 10px #2f9bff55}button:active{transform:scale(.96)}
+button.pr{background:var(--a);border-color:var(--a);color:#001226;font-weight:600}.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}label{color:var(--m);font-size:13px;display:flex;gap:5px;align-items:center}
+.led{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;border:1px solid var(--b);border-radius:20px;color:var(--m);margin:2px}.led i{width:10px;height:10px;border-radius:50%;background:#26324a;transition:.2s}.led.on{color:#fff}.led.on i{background:var(--c,var(--a2));box-shadow:0 0 9px var(--c,var(--a2))}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{padding:5px 11px;border-radius:8px;border:1px solid var(--b);color:var(--m);font-size:13px;transition:.25s}.chip.cur{background:var(--a);color:#001226;font-weight:700;box-shadow:0 0 14px var(--a)}.chip.nx{border:1px dashed var(--a2);color:var(--a2)}
+.big{font:700 46px ui-monospace,monospace;color:var(--a2);text-shadow:0 0 16px #00e5ff77}
+.ok{color:var(--g);font-weight:700}.bad{color:var(--r);font-weight:700}pre{margin:0;font-size:12px;color:var(--m);max-height:150px;overflow:auto}
+svg text{font-family:ui-monospace,Menlo,monospace}.w{stroke:#2a3b5c;fill:none;stroke-width:1.3}.w.on{stroke:var(--a2);stroke-width:2}
+.bx{fill:#101c33;stroke:#34507f;stroke-width:1.4;transition:.2s}.bx.on{stroke:var(--a2);fill:#0d2a45}
+.fn{fill:#101c33;stroke:#34507f;stroke-width:2;transition:.3s}.fc .fn{fill:var(--a);stroke:var(--a2);filter:drop-shadow(0 0 10px var(--a))}.fc text{fill:#001226}.fx .fn{stroke-dasharray:5 3;stroke:var(--a2)}
+#arm{transform-origin:300px 138px;transition:transform var(--dur) linear}#car{transition:transform var(--dur) linear}
+</style></head><body>
+<nav><a href="#overview">Overview</a><a href="#fsm">FSM</a><a href="#truth">Truth Table</a><a href="#logic">Boolean Logic</a><a href="#circuit">Circuit</a><a href="#sim">Simulation</a><a href="#tests">Testing</a></nav>
+<main>
+<section id="overview"><h1>Automatic Parking <span>Barrier Controller</span></h1><p>A Moore finite-state machine built from six D flip-flops and AND/OR/NOT gates. The same netlist drives the simulator, the circuit diagram and the test bench, so what you see is what is verified.</p>
+<div class="g2"><div class="card"><h3>Inputs / outputs</h3><table><tr><th>Signal</th><th>Dir</th><th>Meaning</th></tr>
+<tr><td>V</td><td>in</td><td>Vehicle loop sensor (1 = vehicle on loop)</td></tr><tr><td>E, X</td><td>in</td><td>Entry / Exit request buttons</td></tr><tr><td>O, C</td><td>in</td><td>Barrier fully-open / fully-closed position sensors</td></tr><tr><td>R</td><td>in</td><td>Synchronous reset (highest priority)</td></tr><tr><td>CLK</td><td>in</td><td>Clock, rising edge</td></tr>
+<tr><td>MOTOR_OPEN / MOTOR_CLOSE</td><td>out</td><td>Motor drive (never both 1)</td></tr><tr><td>GREEN / RED</td><td>out</td><td>Traffic LEDs (RED = ¬GREEN)</td></tr><tr><td>ALARM</td><td>out</td><td>Fault indicator</td></tr><tr><td>CNT[3:0]</td><td>out</td><td>Cars inside, 0 to 15, saturating up/down counter</td></tr></table></div>
+<div class="card"><h3>Safety rules and constraints</h3><ol style="padding-left:18px;margin:0">
+<li>Motors are decoded from mutually exclusive states, so both can never be on together.</li><li>O·C = 1 is physically impossible, so it is treated as sensor failure: the FSM enters FAULT and stops the motors.</li><li>FAULT is only left through Reset. Unused codes 101/110/111 also fall into FAULT.</li><li>Vehicle on the loop while closing reopens the barrier (obstruction).</li><li>Requests are accepted only in IDLE with barrier closed; presses in other states are ignored.</li><li>Entry has priority if E and X are pressed together.</li><li>A pass is counted once, on the falling edge of V, never while V stays high.</li><li>If IDLE is reached with the barrier not closed (for example after reset), it closes itself.</li></ol></div></div>
+<div class="card"><h3>Design decisions</h3><ul style="margin:0;padding-left:18px"><li><b>Moore</b>, not Mealy: outputs depend only on state, so motor and LEDs cannot glitch with a noisy sensor. Cost: one extra clock of latency, which is irrelevant for a mechanical barrier.</li><li><b>Encoding</b> IDLE 000, OPENING 001, CLOSING 010, OPEN 011, FAULT 1xx. Q2 alone means FAULT, which keeps the fault logic tiny.</li><li><b>Helper flip-flops</b>: SEEN (vehicle reached the loop), RE (re-opened after obstruction, blocks a second count), DIR (latched direction for the counter).</li><li><b>Combinational</b> = decoders, next-state and output gates. <b>Sequential</b> = the six D flip-flops (Q2, Q1, Q0, SEEN, RE, DIR) and the counter register.</li><li>Known limit: no timeout, so the barrier stays open until a car has passed and left the loop.</li></ul></div></section>
+
+<section id="fsm"><h2>Finite State Machine (Moore)</h2><div class="g2"><div class="card"><svg id="dia" viewBox="0 0 660 360" width="100%"></svg><p style="margin:4px 0 0;font-size:13px">R = 1 from any state → IDLE. Self-loops (hold) are in the table. Live: filled = present state, dashed = next state.</p></div>
+<div class="card sc"><table id="stt"></table></div></div></section>
+
+<section id="truth"><h2>Truth Table</h2><p>Generated from the netlist. Pick the present state and the helper flags; all 64 combinations of R, O, C, V, E, X are listed. Changed rows are highlighted.</p>
+<div class="row"><label>State <select id="ts"></select></label><label>SEEN <select id="tse"><option>0</option><option>1</option></select></label><label>RE <select id="tre"><option>0</option><option>1</option></select></label><label>DIR <select id="tdi"><option>0</option><option>1</option></select></label><span id="tmo" class="mono" style="color:var(--g)"></span></div>
+<div class="card sc"><table id="tt"></table></div></section>
+
+<section id="logic"><h2>Boolean Logic</h2><div class="g2"><div class="card mono" style="font-size:13px;line-height:1.9">
+<b style="color:var(--a2)">State decoders</b><br>IDLE = Q2′Q1′Q0′ · OPENING = Q2′Q1′Q0<br>CLOSING = Q2′Q1Q0′ · OPEN = Q2′Q1Q0 · FAULT = Q2<br><b style="color:var(--a2)">Helpers</b><br>FLT = O·C · REQ = E+X · A = R′·Q2′·FLT′<br><b style="color:var(--a2)">Next state (D inputs)</b><br>D2 = R′·(Q2 + O·C)<br>D1 = A·(IDLE·C′ + OPENING·O + OPEN + CLOSING·C′·V′)<br>D0 = A·(IDLE·C·REQ + OPENING + OPEN·(SEEN′+V) + CLOSING·C′·V)<br>D_SEEN = R′·(OPENING+OPEN)·(SEEN+V)<br>D_RE = R′·(CLOSING·C′·V + IDLE′·RE)<br>D_DIR = R′·(IDLE·E + IDLE′·DIR)<br>PASS = OPEN·SEEN·V′·RE′·A (counter enable)<br><b style="color:var(--a2)">Moore outputs</b><br>MOTOR_OPEN = OPENING · MOTOR_CLOSE = CLOSING<br>GREEN = OPEN · RED = GREEN′ · ALARM = Q2<br>Counter: if PASS, CNT ← CNT ± 1 (DIR=1 up), saturating 0…15; R clears.</div>
+<div class="card"><h3>Rebuild in Logisim / CircuitVerse</h3><ol style="padding-left:18px;margin:0;font-size:14px"><li>Add input pins R, V, E, X, O, C, CLK and output pins from the Circuit section.</li><li>Place the gates from the netlist (multi-input AND/OR allowed), wiring by name.</li><li>Add six D flip-flops, all clocked by CLK, D inputs from D2, D1, D0, DSEEN, DRE, DDIR. Their Q outputs feed back as Q2…DIR. Reset is already in every D gate (synchronous).</li><li>Counter: 4-bit register (enable = PASS, clear = R) fed by adder with B = DIR ? 0001 : 1111, plus saturation gating (hold at 15 when up, at 0 when down).</li><li>Power-up: pulse R for one clock.</li></ol></div></div>
+<div class="card sc"><h3>Netlist (evaluation order)</h3><table id="nl"></table></div></section>
+
+<section id="circuit"><h2>Circuit (IEC symbols)</h2><p>Auto-laid out from the netlist. Wires light up with live logic level. Gate symbols: <code>&amp;</code> AND, <code>≥1</code> OR, <code>1</code> with bubble NOT. Flip-flop Q outputs return to the Q2…DIR inputs on the left.</p><div class="card sc" style="max-height:640px"><svg id="ckt"></svg></div></section>
+
+<section id="sim"><h2>Simulation</h2>
+<div class="row"><button class="pr" id="bst">▶ Start</button><button id="bsp">■ Stop</button><button id="bstep">Step</button><button id="brs">Reset</button><label>Speed <input type="range" id="spd" min="150" max="1400" value="700"></label></div>
+<div class="row"><button id="be">Entry button</button><button id="bx">Exit button</button><button id="bce">🚗 Car enters</button><button id="bcx">🚙 Car exits</button><button id="brp">Assert RST (sync)</button>
+<label><input type="checkbox" id="fob"> Obstruction (V=1)</label><label><input type="checkbox" id="fo"> O stuck-at-1</label><label><input type="checkbox" id="fc"> C stuck-at-1</label></div>
+<div class="g2"><div class="card"><svg viewBox="0 0 600 230" width="100%"><rect width="600" height="230" rx="10" fill="#0a1220"/><rect y="150" width="600" height="60" fill="#1a2438"/><path d="M0 180H600" stroke="#33415f" stroke-dasharray="14 10"/><rect id="loop" x="250" y="196" width="100" height="8" rx="3" fill="#26324a" stroke="#ffc857" stroke-dasharray="4 3"/>
+<rect x="292" y="60" width="16" height="92" rx="4" fill="#2a3a5c"/><circle cx="300" cy="138" r="9" fill="#34507f"/><g id="arm"><rect x="300" y="132" width="150" height="12" rx="3" fill="#ffc857"/><rect x="340" y="132" width="20" height="12" fill="#c33"/><rect x="390" y="132" width="20" height="12" fill="#c33"/></g>
+<circle id="lg" cx="300" cy="76" r="8" fill="#26324a"/><circle id="lr" cx="300" cy="96" r="8" fill="#26324a"/>
+<g id="car" style="transform:translate(-100px,160px)"><rect width="70" height="26" rx="6" fill="#2f9bff"/><rect x="40" y="3" width="22" height="9" rx="2" fill="#0a1a30"/><circle cx="14" cy="26" r="5" fill="#111"/><circle cx="56" cy="26" r="5" fill="#111"/></g><text x="12" y="22" fill="#7d8fb0" font-size="12">Entry side →</text><text x="588" y="22" fill="#7d8fb0" font-size="12" text-anchor="end">← Exit side</text></svg>
+<div id="chips" class="chips" style="margin-top:8px"></div><div id="trn" class="mono" style="margin:8px 0;font-size:13px"></div><pre id="log"></pre></div>
+<div class="card"><h3>Inputs</h3><div id="li"></div><h3>Outputs</h3><div id="lo"></div><h3>Registers</h3><div id="lf"></div><h3>Cars inside</h3><div class="big" id="cnt">0</div><div class="mono" id="cb" style="color:var(--m)"></div></div></div></section>
+
+<section id="tests"><h2>Verification</h2><p>Part 1 compares the gate-level netlist against an independent behavioural specification for every state and input combination. Part 2 runs closed-loop scenarios with the barrier motor model.</p><div class="row"><button class="pr" id="brun">Run all tests</button><span id="sum" style="font-weight:700"></span></div><div class="card sc" id="ex"></div><div class="card sc" style="max-height:none"><table id="rt"></table></div></section>
+</main>
+<script>
+const $=id=>document.getElementById(id),SRC='R V E X O C Q2 Q1 Q0 SEEN RE DIR CLK'.split(' '),NAMES=['IDLE','OPENING','CLOSING','OPEN'],NM=c=>c<4?NAMES[c]:'FAULT',CODE=c=>c.toString(2).padStart(3,'0');
+const NL=`nR=NOT(R);nV=NOT(V);nC=NOT(C);nQ2=NOT(Q2);nQ1=NOT(Q1);nQ0=NOT(Q0);nSEEN=NOT(SEEN);nRE=NOT(RE)
+FLT=AND(O,C);nFLT=NOT(FLT);IDLE=AND(nQ2,nQ1,nQ0);OPENING=AND(nQ2,nQ1,Q0);OPEN=AND(nQ2,Q1,Q0);CLOSING=AND(nQ2,Q1,nQ0);nIDLE=NOT(IDLE)
+A=AND(nR,nQ2,nFLT);REQ=OR(E,X)
+t1=AND(IDLE,nC);t2=AND(OPENING,O);t3=AND(CLOSING,nC,nV);D1i=OR(t1,t2,OPEN,t3);D1=AND(A,D1i)
+t4=AND(IDLE,C,REQ);t5=OR(nSEEN,V);t6=AND(OPEN,t5);t7=AND(CLOSING,nC,V);D0i=OR(t4,OPENING,t6,t7);D0=AND(A,D0i)
+D2i=OR(Q2,FLT);D2=AND(nR,D2i)
+s1=OR(OPENING,OPEN);s2=OR(SEEN,V);DSEEN=AND(nR,s1,s2)
+r1=AND(nIDLE,RE);r2=OR(t7,r1);DRE=AND(nR,r2)
+d1=AND(IDLE,E);d2=AND(nIDLE,DIR);d3=OR(d1,d2);DDIR=AND(nR,d3)
+PASS=AND(OPEN,SEEN,nV,nRE,A);RED=NOT(OPEN)`.split(/[;\n]+/).filter(Boolean).map(s=>{const[,n,t,a]=s.match(/(\w+)=(\w+)\(([\w,]+)\)/);return{n,t,a:a.split(',')}});
+function ev(i){const v={};SRC.forEach(k=>v[k]=i[k]?1:0);for(const g of NL){const x=g.a.map(k=>v[k]);v[g.n]=g.t=='NOT'?+!x[0]:g.t=='AND'?+x.every(Boolean):+x.some(Boolean)}v.MOTOR_OPEN=v.OPENING;v.MOTOR_CLOSE=v.CLOSING;v.GREEN=v.OPEN;v.ALARM=v.Q2;v.NS=v.D2*4+v.D1*2+v.D0;return v}
+class M{constructor(){this.r();this.sO=0;this.sC=0}r(){this.q={Q2:0,Q1:0,Q0:0,SEEN:0,RE:0,DIR:0};this.n=0;this.a=0}
+sens(){return{O:+(this.a>=90||!!this.sO),C:+(this.a<=0||!!this.sC)}}
+v(i){return ev({...i,...this.sens(),...this.q})}code(){return this.q.Q2*4+this.q.Q1*2+this.q.Q0}
+clk(i){const v=this.v(i);this.q={Q2:v.D2,Q1:v.D1,Q0:v.D0,SEEN:v.DSEEN,RE:v.DRE,DIR:v.DDIR};
+if(v.R)this.n=0;else if(v.PASS)this.n=Math.max(0,Math.min(15,this.n+(v.DIR?1:-1)));
+this.a=Math.max(0,Math.min(90,this.a+(v.OPENING-v.CLOSING)*30));return v}}
+// independent behavioural spec
+function spec(s,i){const f=s>=4||(i.O&&i.C);let ns;if(i.R)ns=0;else if(f)ns=4;else if(s==0)ns=!i.C?2:(i.E||i.X)?1:0;else if(s==1)ns=i.O?3:1;else if(s==3)ns=(i.SEEN&&!i.V)?2:3;else ns=i.C?0:i.V?1:2;
+return{NS:ns,DSEEN:+(!i.R&&(s==1||s==3)&&(i.SEEN||i.V)),DRE:+(!i.R&&((s==2&&!i.C&&i.V)||(i.RE&&s!=0))),DDIR:+(!i.R&&(s==0?i.E:i.DIR)),PASS:+(!i.R&&!(i.O&&i.C)&&s==3&&!!i.SEEN&&!i.V&&!i.RE),MOTOR_OPEN:+(s==1),MOTOR_CLOSE:+(s==2),GREEN:+(s==3),RED:+(s!=3),ALARM:+(s>=4)}}
+const st2q=s=>({Q2:s>>2&1,Q1:s>>1&1,Q0:s&1});
+// FSM diagram
+const P={IDLE:[110,150],OPENING:[330,60],OPEN:[550,150],CLOSING:[330,250],FAULT:[110,310]},OUTS={IDLE:'RED',OPENING:'RED·MOTOR▲',CLOSING:'RED·MOTOR▼',OPEN:'GREEN',FAULT:'RED·ALARM'};
+const ED=[['IDLE','OPENING','C·(E+X)',0],['OPENING','OPEN','O',0],['OPEN','CLOSING','SEEN·V′',0],['CLOSING','IDLE','C',22],['IDLE','CLOSING','C′ (recover)',22],['CLOSING','OPENING','C′·V (obstruction)',0],['IDLE','FAULT','O·C (any state)',18],['FAULT','IDLE','R',18]];
+(function(){let h='<defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#2f9bff"/></marker></defs>';
+for(const[a,b,l,o]of ED){const[x1,y1]=P[a],[x2,y2]=P[b],dx=x2-x1,dy=y2-y1,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,sx=x1+ux*42,sy=y1+uy*42,ex=x2-ux*44,ey=y2-uy*44,cx=(x1+x2)/2+uy*o*2,cy=(y1+y2)/2-ux*o*2,lx=.25*sx+.5*cx+.25*ex,ly=.25*sy+.5*cy+.25*ey;
+h+=`<path d="M${sx} ${sy}Q${cx} ${cy} ${ex} ${ey}" fill="none" stroke="#2f9bff" stroke-width="1.6" marker-end="url(#ar)" ${a=='IDLE'&&b=='FAULT'||a=='FAULT'?'stroke-dasharray="5 4"':''}/><text x="${lx}" y="${ly-4}" fill="#9fc4ff" font-size="11" text-anchor="middle">${l}</text>`}
+for(const n in P)h+=`<g id="n_${n}"><circle class="fn" cx="${P[n][0]}" cy="${P[n][1]}" r="40"/><text x="${P[n][0]}" y="${P[n][1]-6}" text-anchor="middle" font-size="12" font-weight="700" fill="#d8e3f7">${n}</text><text x="${P[n][0]}" y="${P[n][1]+8}" text-anchor="middle" font-size="11" fill="#7d8fb0">${CODE(NAMES.concat('FAULT').indexOf(n)==4?4:NAMES.indexOf(n))}</text><text x="${P[n][0]}" y="${P[n][1]+21}" text-anchor="middle" font-size="8" fill="#7d8fb0">${OUTS[n]}</text></g>`;
+$('dia').innerHTML=h;
+const T=[['any','R','IDLE'],['FAULT / any','O·C','FAULT (holds until R)'],['IDLE','C′','CLOSING'],['IDLE','C·(E+X)','OPENING'],['IDLE','else','IDLE'],['OPENING','O','OPEN'],['OPENING','O′','OPENING'],['OPEN','SEEN·V′ (count)','CLOSING'],['OPEN','else','OPEN'],['CLOSING','C','IDLE'],['CLOSING','C′·V','OPENING (set RE)'],['CLOSING','else','CLOSING']];
+$('stt').innerHTML='<tr><th>Present</th><th>Condition (priority ↓)</th><th>Next</th></tr>'+T.map(r=>`<tr><td>${r[0]}</td><td class=mono>${r[1]}</td><td>${r[2]}</td></tr>`).join('')+'<tr><td colspan=3 style="color:var(--m)">Moore outputs: IDLE 000 RED · OPENING 001 MOTOR_OPEN · CLOSING 010 MOTOR_CLOSE · OPEN 011 GREEN · FAULT 1xx RED+ALARM</td></tr>';
+// truth table
+$('ts').innerHTML=[0,1,2,3,4,5,6,7].map(s=>`<option value=${s}>${CODE(s)} ${NM(s)}${s>4?' (unused)':''}</option>`).join('');
+function tt(){const s=+$('ts').value,fl={SEEN:+$('tse').value,RE:+$('tre').value,DIR:+$('tdi').value};let h='<tr><th>R</th><th>O</th><th>C</th><th>V</th><th>E</th><th>X</th><th>Next</th><th>D2D1D0</th><th>SEEN′</th><th>RE′</th><th>DIR′</th><th>PASS</th></tr>';
+for(let k=0;k<64;k++){const i={R:k>>5&1,O:k>>4&1,C:k>>3&1,V:k>>2&1,E:k>>1&1,X:k&1,...fl,...st2q(s)},v=ev(i);h+=`<tr style="${v.NS!=s?'background:#10294a':''}"><td>${i.R}</td><td>${i.O}</td><td>${i.C}</td><td>${i.V}</td><td>${i.E}</td><td>${i.X}</td><td>${NM(v.NS)}${i.O&&i.C?' ⚠':''}</td><td class=mono>${CODE(v.NS)}</td><td>${v.DSEEN}</td><td>${v.DRE}</td><td>${v.DDIR}</td><td>${v.PASS}</td></tr>`}
+$('tt').innerHTML=h;const o=ev({...st2q(s)});$('tmo').textContent=`Moore outputs: MOTOR_OPEN=${o.MOTOR_OPEN} MOTOR_CLOSE=${o.MOTOR_CLOSE} GREEN=${o.GREEN} RED=${o.RED} ALARM=${o.ALARM}`}
+['ts','tse','tre','tdi'].forEach(k=>$(k).onchange=tt);tt();
+$('nl').innerHTML='<tr><th>Net</th><th>Gate</th><th>Inputs</th></tr>'+NL.map(g=>`<tr><td class=mono>${g.n}</td><td>${g.t}</td><td class=mono>${g.a.join(', ')}</td></tr>`).join('');
+})();
+// circuit
+let WIRES=[],BOXES=[];
+(function(){const nd={};SRC.forEach(n=>nd[n]={n,t:'SRC',a:[],lv:0});NL.forEach(g=>nd[g.n]={...g,lv:1+Math.max(...g.a.map(k=>nd[k].lv))});const mx=Math.max(...NL.map(g=>nd[g.n].lv))+1;
+const sk=['Q2','Q1','Q0','SEEN','RE','DIR'].map(q=>({n:'FF_'+q,t:'DFF',a:['D'+q.replace('Q',''),'CLK']})).concat([{n:'COUNTER',t:'CNT',a:['PASS','DIR','R','CLK']}],[['MOTOR_OPEN','OPENING'],['MOTOR_CLOSE','CLOSING'],['GREEN_LED','OPEN'],['RED_LED','RED'],['ALARM','Q2']].map(([n,s])=>({n,t:'OUT',a:[s]})));
+sk.forEach(s=>{s.lv=mx;nd[s.n]=s});const cols=[];Object.values(nd).forEach(n=>(cols[n.lv]=cols[n.lv]||[]).push(n));let H=0;
+cols.forEach((c,l)=>{let y=14;c.forEach(n=>{n.h=Math.max(32,13*(n.a.length+1));n.w=n.t=='SRC'?44:n.t=='OUT'?100:n.t=='DFF'||n.t=='CNT'?84:52;n.x=20+l*150;n.y=y;y+=n.h+14});H=Math.max(H,y)});
+let w='',b='';for(const n of Object.values(nd))n.a.forEach((s,k)=>{const S=nd[s],sx=S.x+S.w+(S.t=='NOT'?6:0),sy=S.y+S.h/2,ty=n.y+n.h*(k+1)/(n.a.length+1),mxx=n.x-10-(k%3)*3;w+=`<path class="w" data-s="${s}" d="M${sx} ${sy}H${mxx}V${ty}H${n.x}"/>`});
+for(const n of Object.values(nd)){const sym={SRC:n.n,AND:'&',OR:'≥1',NOT:'1',DFF:'D-FF ▷',CNT:'UP/DN CTR',OUT:n.n}[n.t];b+=`<g><rect class="bx" data-n="${n.n}" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${n.t=='SRC'||n.t=='OUT'?14:3}"/><text x="${n.x+n.w/2}" y="${n.y+n.h/2+(n.t=='SRC'||n.t=='OUT'?4:0)}" fill="#d8e3f7" font-size="${n.t=='SRC'||n.t=='OUT'?10:13}" text-anchor="middle">${sym}</text>${n.t=='SRC'||n.t=='OUT'?'':`<text x="${n.x+n.w/2}" y="${n.y+n.h/2+12}" fill="#7d8fb0" font-size="8" text-anchor="middle">${n.n}</text>`}${n.t=='NOT'?`<circle cx="${n.x+n.w+3}" cy="${n.y+n.h/2}" r="3" fill="#0a1220" stroke="#34507f"/>`:''}${n.t=='DFF'?`<text x="${n.x+n.w+4}" y="${n.y+n.h/2+3}" fill="#00e5ff" font-size="9">Q→${n.n.slice(3)}</text><text x="${n.x+3}" y="${n.y+n.h-3}" fill="#7d8fb0" font-size="7">D/CLK</text>`:''}</g>`}
+$('ckt').setAttribute('width',20+(mx+1)*150);$('ckt').setAttribute('height',H);$('ckt').innerHTML=w+b;
+WIRES=[...document.querySelectorAll('#ckt .w')];BOXES=[...document.querySelectorAll('#ckt .bx')].map(e=>[e,nd[e.dataset.n]])})();
+function paintCkt(v){WIRES.forEach(e=>e.classList.toggle('on',!!v[e.dataset.s]));BOXES.forEach(([e,n])=>e.classList.toggle('on',!!v[n.t=='DFF'||n.t=='CNT'||n.t=='OUT'?n.a[0]:n.n]))}
+// simulation
+const m=new M();let run=0,tm=null,cy=0,pR=0,pE=0,pX=0,car={p:-1,d:1},lg=[];const CX=[20,180,250,300,480];
+const vNow=()=>(car.p==2||car.p==3||$('fob').checked)?1:0,inp=()=>({R:pR,V:vNow(),E:pE,X:pX});
+const led=(l,on,c)=>`<span class="led ${on?'on':''}" style="--c:${c||'var(--a2)'}"><i></i>${l}</span>`;
+function paint(){m.sO=$('fo').checked;m.sC=$('fc').checked;const i=inp(),v=m.v(i),cur=m.code(),nx=v.NS;
+$('chips').innerHTML=['IDLE','OPENING','OPEN','CLOSING','FAULT'].map(n=>{const c=n=='FAULT'?4:NAMES.indexOf(n);return`<span class="chip ${NM(cur)==n?'cur':''} ${NM(nx)==n&&nx!=cur?'nx':''}">${n}</span>`}).join('');
+for(const n in P){const e=$('n_'+n);e.setAttribute('class',(NM(cur)==n?'fc ':'')+(NM(nx)==n&&nx!=cur?'fx':''))}
+$('trn').innerHTML=`Present <b>${NM(cur)}</b> (${CODE(cur)}) → Next <b style="color:var(--a2)">${NM(nx)}</b> (${CODE(nx)})${nx==cur?' · hold':''}`;
+$('li').innerHTML=['R','V','E','X','O','C'].map(k=>led(k,v[k])).join('');
+$('lo').innerHTML=led('MOTOR_OPEN',v.MOTOR_OPEN,'var(--y)')+led('MOTOR_CLOSE',v.MOTOR_CLOSE,'var(--y)')+led('GREEN',v.GREEN,'var(--g)')+led('RED',v.RED,'var(--r)')+led('ALARM',v.ALARM,'var(--r)')+led('PASS',v.PASS);
+$('lf').innerHTML=['Q2','Q1','Q0','SEEN','RE','DIR'].map(k=>led(k,v[k])).join('')+`<div style="font-size:12px;color:var(--m);margin-top:4px">Barrier angle ${m.a}°</div>`;
+$('cnt').textContent=m.n;$('cb').textContent='CNT[3:0] = '+m.n.toString(2).padStart(4,'0');
+$('arm').style.transform=`rotate(${-m.a}deg)`;$('lg').setAttribute('fill',v.GREEN?'#2ee59d':'#26324a');$('lr').setAttribute('fill',v.RED?'#ff4d6a':'#26324a');$('loop').setAttribute('fill',vNow()?'#ffc857':'#26324a');
+$('car').style.transform=car.p<0?`translate(${car.d>0?-100:700}px,160px)`:`translate(${car.d>0?CX[car.p]:530-CX[car.p]}px,160px)`;
+v.CLK=cy&1;paintCkt(v);$('log').textContent=lg.slice(-9).join('\n')}
+function tick(){const i=inp(),v=m.clk(i),b=NM(v.NS);lg.push(`t${cy} ${NM(v.Q2*4+v.Q1*2+v.Q0)}→${b} R${i.R}V${i.V}E${i.E}X${i.X}O${v.O}C${v.C}${v.PASS?' COUNT '+(v.DIR?'+1':'−1'):''}`);cy++;pR=pE=pX=0;
+if(car.p>=0){if(car.p==1){if(m.sens().O)car.p=2}else car.p++;if(car.p>4)car.p=-1}paint()}
+function setRun(r){run=r;clearInterval(tm);if(r)tm=setInterval(tick,+$('spd').value);$('bst').classList.toggle('pr',!r)}
+$('bst').onclick=()=>setRun(1);$('bsp').onclick=()=>setRun(0);$('bstep').onclick=()=>{setRun(0);tick()};
+$('brs').onclick=()=>{setRun(0);m.r();cy=0;pR=pE=pX=0;car={p:-1,d:1};lg=[];$('fob').checked=$('fo').checked=$('fc').checked=false;paint()};
+$('be').onclick=()=>{pE=1;paint()};$('bx').onclick=()=>{pX=1;paint()};$('brp').onclick=()=>{pR=1;paint()};
+const spawn=d=>{if(car.p<0){car={p:0,d};d>0?pE=1:pX=1;paint()}};$('bce').onclick=()=>spawn(1);$('bcx').onclick=()=>spawn(-1);
+$('spd').oninput=()=>{document.documentElement.style.setProperty('--dur',($('spd').value/1000)+'s');if(run)setRun(1)};['fob','fo','fc'].forEach(k=>$(k).onchange=paint);
+// tests
+const pls=(a,b)=>c=>c>=a&&c<=b;
+const TS=[
+['Normal entry',c=>({E:c==0,V:pls(8,9)(c)}),30,0,{st:'IDLE',n:1,deg:0}],
+['Exit when lot empty (counter saturates at 0)',c=>({X:c==0,V:pls(8,9)(c)}),30,0,{st:'IDLE',n:0,deg:0}],
+['Entry, entry, exit → 1 car',c=>({E:c==0||c==25,X:c==50,V:pls(8,9)(c)||pls(33,34)(c)||pls(58,59)(c)}),80,0,{st:'IDLE',n:1,deg:0}],
+['Simultaneous entry + exit (entry priority, one cycle)',c=>({E:c==0,X:c==0,V:pls(8,9)(c)}),30,0,{st:'IDLE',n:1,deg:0,reo:0}],
+['Repeated button press while opening',c=>({E:c<3,V:pls(8,9)(c)}),30,0,{st:'IDLE',n:1,deg:0}],
+['Repeated detection: V held high 11 cycles',c=>({E:c==0,V:pls(8,18)(c)}),40,0,{st:'IDLE',n:1,deg:0}],
+['Reset during opening (recovers closed, count 0)',c=>({E:c==0,R:c==2}),20,0,{st:'IDLE',n:0,deg:0}],
+['Barrier obstruction while closing (reopen, no double count)',c=>({E:c==0,V:pls(8,9)(c)||pls(12,13)(c)}),40,0,{st:'IDLE',n:1,deg:0,reo:1}],
+['Sensor failure: C stuck-at-1, then barrier opens',c=>({E:c==0}),15,()=>({C:1}),{st:'FAULT',n:0,deg:90,both:0}],
+['Sensor failure: O stuck-at-1 at power-up',c=>({}),6,()=>({O:1}),{st:'FAULT',n:0,deg:0}],
+['Fault is latched without reset (sensor repaired at t4)',c=>({}),10,c=>({O:c<4}),{st:'FAULT',n:0,deg:0}],
+['Fault cleared by reset after repair',c=>({R:c==4}),10,c=>({O:c<4}),{st:'IDLE',n:0,deg:0}],
+['Vehicle sensor stuck-at-1, no request',c=>({V:1}),20,0,{st:'IDLE',n:0,deg:0}],
+['Vehicle sensor stuck-at-1 with request (fails open, safe)',c=>({E:c==0,V:1}),30,0,{st:'OPEN',n:0,deg:90}]];
+function runT(f,cyc,sk){const x=new M();let reo=0,pn='',both=0;for(let c=0;c<cyc;c++){const s=sk?sk(c):{};x.sO=s.O|0;x.sC=s.C|0;const v=x.clk(f(c)),nm=NM(v.Q2*4+v.Q1*2+v.Q0);if(pn=='CLOSING'&&nm=='OPENING')reo=1;pn=nm;if(v.OPENING&&v.CLOSING)both=1}return{st:NM(x.code()),n:x.n,deg:x.a,reo,both}}
+const fm=(o,k)=>k.map(a=>`${a}=${o[a]}`).join(', ');
+function tests(){let tot=0,bad=0,first='',h='<table><tr><th>State</th><th>Combos (9 inputs)</th><th>Mismatches</th></tr>';
+for(let s=0;s<8;s++){let b=0;for(let k=0;k<512;k++){const i={R:k&1,O:k>>1&1,C:k>>2&1,V:k>>3&1,E:k>>4&1,X:k>>5&1,SEEN:k>>6&1,RE:k>>7&1,DIR:k>>8&1,...st2q(s)},v=ev(i),e=spec(s,i);for(const key in e)if(v[key]!=e[key]){b++;first=first||`state ${s} k=${k} ${key}`;break}}tot+=512;bad+=b;h+=`<tr><td>${CODE(s)} ${NM(s)}${s>4?' (unused→FAULT)':''}</td><td>512</td><td class="${b?'bad':'ok'}">${b?b:'0 ✔'}</td></tr>`}
+$('ex').innerHTML=h+`</table><p>${tot} combinations: ${tot-bad} pass, ${bad} fail ${first}</p>`;
+let p=tot-bad==tot?1:0,n=1,rows='<tr><th>#</th><th>Scenario</th><th>Expected</th><th>Actual</th><th>Result</th></tr>';
+rows+=`<tr><td>0</td><td>Exhaustive netlist vs spec</td><td>0 mismatches</td><td>${bad} mismatches</td><td class="${bad?'bad':'ok'}">${bad?'FAIL':'PASS'}</td></tr>`;
+TS.forEach((t,i)=>{const a=runT(t[1],t[2],t[3]),k=Object.keys(t[4]),ok=k.every(x=>a[x]==t[4][x]);n++;p+=ok;rows+=`<tr><td>${i+1}</td><td>${t[0]}</td><td class=mono>${fm(t[4],k)}</td><td class=mono>${fm(a,k)}</td><td class="${ok?'ok':'bad'}">${ok?'PASS':'FAIL'}</td></tr>`});
+$('rt').innerHTML=rows;$('sum').innerHTML=`<span class="${p==n?'ok':'bad'}">${p}/${n} test groups passed</span> <span style="color:var(--m);font-weight:400">(st=state, n=cars, deg=barrier angle, reo=reopened, both=both motors on)</span>`}
+$('brun').onclick=tests;tests();paint();
+</script></body></html>

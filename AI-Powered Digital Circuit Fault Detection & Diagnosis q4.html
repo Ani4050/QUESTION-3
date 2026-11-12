@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI-Powered Digital Circuit Fault Detection & Diagnosis</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<style>
+:root{--bg:#060a13;--panel:#0d1424;--panel2:#111b30;--line:#1d2b47;--cyan:#22e4ff;--green:#2bff9a;--red:#ff4d6a;--amber:#ffb020;--text:#d8e4ff;--mut:#7488ad;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#12264a55,transparent),radial-gradient(900px 500px at 100% 0,#2a124a44,transparent),var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px);background-size:36px 36px;pointer-events:none}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.wrap{position:relative;max-width:1320px;margin:0 auto;padding:22px 18px 50px}
+header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:clamp(20px,3vw,30px);margin:0;font-weight:800;letter-spacing:-.02em;background:linear-gradient(90deg,#fff,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mut);font-size:13px;margin-top:4px}
+.badge{padding:10px 18px;border-radius:12px;font-weight:800;letter-spacing:.08em;border:1px solid;display:flex;gap:10px;align-items:center;transition:.4s}
+.badge.fail{color:var(--red);border-color:#ff4d6a66;background:#ff4d6a14;box-shadow:0 0 24px #ff4d6a33}
+.badge.pass{color:var(--green);border-color:#2bff9a66;background:#2bff9a14;box-shadow:0 0 28px #2bff9a44}
+.dot{width:9px;height:9px;border-radius:50%;background:currentColor;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+.grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:16px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 10px 40px #0008;min-width:0}
+.card h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip,.btn{border:1px solid var(--line);background:#0a1120;color:var(--text);padding:8px 12px;border-radius:10px;font:600 12px Inter,sans-serif;cursor:pointer;transition:.2s}
+.chip:hover,.btn:hover:not(:disabled){border-color:var(--cyan);box-shadow:0 0 14px #22e4ff33;transform:translateY(-1px)}
+.chip.on{border-color:var(--cyan);color:var(--cyan);background:#22e4ff14}
+.btn{padding:11px 16px;font-size:13px}.btn.pri{background:linear-gradient(90deg,#0aa7c8,#2a6bff);border:0;color:#fff;box-shadow:0 0 22px #2a6bff55}
+.btn.ok{background:linear-gradient(90deg,#12c27a,#0aa7c8);border:0;color:#021;box-shadow:0 0 22px #2bff9a44}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat{background:#0a1120;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:11px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.stat span{font-size:18px;font-weight:800}
+svg.circ{width:100%;height:auto;display:block;background:#070d1a;border-radius:12px;border:1px solid var(--line)}
+.wb{fill:none;stroke:#1e3052;stroke-width:2.5;stroke-linejoin:round}
+.wf{fill:none;stroke:var(--cyan);stroke-width:2.5;stroke-dasharray:7 9;animation:flow .7s linear infinite;filter:drop-shadow(0 0 4px var(--cyan))}
+.wf.r{stroke:var(--red);filter:drop-shadow(0 0 5px var(--red))}
+.wb.r{stroke:#5a1f33}
+@keyframes flow{to{stroke-dashoffset:-16}}
+.gate{cursor:pointer}.gate .body{fill:#0f1b33;stroke:#3a557f;stroke-width:2;transition:.3s}
+.gate.on .body{stroke:var(--cyan);filter:drop-shadow(0 0 5px #22e4ff88)}
+.gate.fault .body{stroke:var(--red);fill:#2a0d1a;animation:pulse 1s infinite}
+.gate.fixed .body{stroke:var(--green);fill:#0b2a20;filter:drop-shadow(0 0 10px var(--green))}
+.gate.sel .ring{opacity:1}.ring{fill:none;stroke:var(--amber);stroke-dasharray:4 4;opacity:0;transition:.2s}
+.gate .ld{stroke:#3a557f;stroke-width:2;fill:none}
+@keyframes pulse{50%{filter:drop-shadow(0 0 14px var(--red))}0%,100%{filter:drop-shadow(0 0 3px var(--red))}}
+.gl{font:700 10px "JetBrains Mono",monospace;fill:var(--mut);text-anchor:middle}.gl.bad{fill:var(--red)}.gl.good{fill:var(--green)}
+.io rect{fill:#0c1730;stroke:#3a557f;stroke-width:2;transition:.25s}.io.h rect{fill:#0a4d5c;stroke:var(--cyan);filter:drop-shadow(0 0 8px var(--cyan))}
+.io.bad rect{stroke:var(--red);fill:#3a0f1d;filter:drop-shadow(0 0 8px var(--red))}
+.io text{font:700 12px "JetBrains Mono",monospace;fill:var(--text);text-anchor:middle;pointer-events:none}.io{cursor:pointer}
+.insp{margin-top:10px;font-size:12.5px;color:var(--mut);min-height:20px}.insp b{color:var(--text)}
+table{width:100%;border-collapse:collapse;font:12.5px "JetBrains Mono",monospace}
+th{color:var(--mut);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line);font-size:11px}
+td{text-align:center;padding:6px 4px;border-bottom:1px solid #15223b}
+tr{transition:background .25s;cursor:pointer}tr:hover{background:#ffffff08}
+tr.live{background:#22e4ff14;box-shadow:inset 3px 0 var(--cyan)}tr.scan{background:#2bff9a1c;box-shadow:inset 3px 0 var(--green)}
+td.bad{color:var(--red);font-weight:700;background:#ff4d6a1a}td.good{color:var(--green)}td.mid{border-left:1px solid var(--line)}
+.chat{display:flex;flex-direction:column;height:560px}
+.msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:9px;padding-right:4px}
+.msg{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.5;background:#0a1120;border:1px solid var(--line);animation:in .35s}
+.msg.sys{color:var(--mut)}.msg.err{border-color:#ff4d6a66;background:#ff4d6a10}.msg.ok{border-color:#2bff9a66;background:#2bff9a10}.msg.ai{border-color:#22e4ff44}
+.caret{display:inline-block;width:7px;height:13px;background:var(--cyan);vertical-align:-2px;margin-left:2px;animation:blink .7s infinite}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.avatar{display:flex;gap:8px;align-items:center;color:var(--cyan)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.cmp{grid-template-columns:1fr}}
+.tag{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700;letter-spacing:.06em}
+.tag.r{color:var(--red);background:#ff4d6a1a}.tag.g{color:var(--green);background:#2bff9a1a}.tag.m{color:var(--mut);background:#ffffff0d}
+.scroll{overflow-x:auto}
+.foot{color:var(--mut);font-size:11.5px;margin-top:14px;text-align:center}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const {useState,useEffect,useRef}=React,h=React.createElement,sleep=ms=>new Promise(r=>setTimeout(r,ms));
+/* ---------- Logic model ---------- */
+const FN={AND:(a,b)=>a&b,OR:(a,b)=>a|b,XOR:(a,b)=>a^b,NAND:(a,b)=>(a&b)^1,NOR:(a,b)=>(a|b)^1,XNOR:(a,b)=>(a^b)^1,NOT:a=>a^1,BUF:a=>a};
+const ALT={1:["NOT","BUF"],2:["AND","OR","XOR","NAND","NOR","XNOR"]};
+const NET=[
+ {id:"N1",in:["C"],out:"n1",x:110,y:330},{id:"N2",in:["n1"],out:"n2",x:220,y:330},
+ {id:"X1",in:["A","B"],out:"x1",x:190,y:95},{id:"A1",in:["A","B"],out:"a1",x:420,y:200},
+ {id:"A2",in:["x1","n2"],out:"a2",x:420,y:300},{id:"X2",in:["x1","n2"],out:"s",x:610,y:95},
+ {id:"O1",in:["a1","a2"],out:"co",x:660,y:250}];
+const GOLD={N1:"NOT",N2:"NOT",X1:"XOR",A1:"AND",A2:"AND",X2:"XOR",O1:"OR"};
+const ROLE={N1:"first inverter in the Cin conditioning chain",N2:"second inverter that restores true Cin polarity",X1:"half-adder XOR (A ⊕ B)",A1:"generate term AND (A·B)",A2:"propagate term AND (Cin·(A ⊕ B))",X2:"sum XOR ((A ⊕ B) ⊕ Cin)",O1:"carry-out OR (A1 + A2)"};
+const FAULTS=[{k:"OR",label:"OR gate error",gate:"O1",type:"AND"},{k:"AND",label:"AND gate error",gate:"A1",type:"OR"},{k:"XOR",label:"XOR gate error",gate:"X1",type:"OR"},{k:"NOT",label:"NOT gate error",gate:"N2",type:"BUF"}];
+const mk=i=>({...GOLD,[FAULTS[i].gate]:FAULTS[i].type});
+const SP={A:[58,60],B:[58,130],C:[58,330]};NET.forEach(g=>SP[g.out]=[g.x+36,g.y]);
+const vecOf=i=>({A:(i>>2)&1,B:(i>>1)&1,C:i&1});
+function sim(types,v){const s={...v};NET.forEach(g=>{s[g.out]=FN[types[g.id]](...g.in.map(k=>s[k]))});return s}
+function table(types){return[...Array(8)].map((_,i)=>{const v=vecOf(i),s=sim(types,v),es=v.A^v.B^v.C,eco=(v.A&v.B)|(v.C&(v.A^v.B));return{i,...v,s:s.s,co:s.co,es,eco,ok:s.s===es&&s.co===eco}})}
+function downstream(id){const set=new Set([NET.find(g=>g.id===id).out]);let ch=1;while(ch){ch=0;NET.forEach(g=>{if(!set.has(g.out)&&g.in.some(k=>set.has(k))){set.add(g.out);ch=1}})}return set}
+function upstream(sigs){const set=new Set(sigs),ids=new Set();let ch=1;while(ch){ch=0;NET.forEach(g=>{if(set.has(g.out)&&!ids.has(g.id)){ids.add(g.id);g.in.forEach(k=>set.add(k));ch=1}})}return[...ids]}
+function analyze(types){const rows=table(types),bad=rows.filter(r=>!r.ok),cands=[];
+ NET.forEach(g=>ALT[g.in.length].forEach(t=>{if(t!==types[g.id]&&table({...types,[g.id]:t}).every(r=>r.ok))cands.push({gate:g.id,type:t})}));
+ const pick=cands.find(c=>c.type===GOLD[c.gate])||cands[0];
+ const outs=[bad.some(r=>r.s!==r.es)&&"Sum",bad.some(r=>r.co!==r.eco)&&"Cout"].filter(Boolean);
+ return{rows,bad,cands,pick,outs,wrong:types[pick.gate],cone:downstream(pick.gate)}}
+/* ---------- Gate graphics ---------- */
+const SHAPE={AND:["AND",0],NAND:["AND",1],OR:["OR",0],NOR:["OR",1],XOR:["XOR",0],XNOR:["XOR",1],NOT:["NOT",1],BUF:["NOT",0]};
+const BODY={AND:"M-26,-22 H-2 A22,22 0 0 1 -2,22 H-26 Z",OR:"M-28,-22 Q0,-22 24,0 Q0,22 -28,22 Q-16,0 -28,-22 Z",XOR:"M-28,-22 Q0,-22 24,0 Q0,22 -28,22 Q-16,0 -28,-22 Z",NOT:"M-20,-20 L20,0 L-20,20 Z"};
+const EDGE={AND:20,OR:24,XOR:24,NOT:20},BX={AND:24,OR:28,XOR:28,NOT:24};
+const pins=g=>g.in.length===2?[[g.x-34,g.y-12],[g.x-34,g.y+12]]:[[g.x-34,g.y]];
+function Gate({g,type,fault,fixed,on,sel,click}){
+ const[sh,bub]=SHAPE[type],cls="gate"+(fault?" fault":"")+(fixed?" fixed":"")+(on?" on":"")+(sel?" sel":"");
+ return h("g",{className:cls,transform:`translate(${g.x},${g.y})`,onClick:click},
+  h("rect",{className:"ring",x:-40,y:-32,width:80,height:64,rx:10}),
+  pins(g).map((p,i)=>h("line",{key:i,className:"ld",x1:-34,x2:-24,y1:p[1]-g.y,y2:p[1]-g.y})),
+  h("line",{className:"ld",x1:bub?BX[sh]+4:EDGE[sh],x2:36,y1:0,y2:0}),
+  h("path",{className:"body",d:BODY[sh]}),
+  sh==="XOR"&&h("path",{className:"ld",d:"M-36,-22 Q-24,0 -36,22"}),
+  bub?h("circle",{className:"body",cx:BX[sh],cy:0,r:4}):null,
+  h("text",{className:"gl "+(fault?"bad":fixed?"good":""),y:42},`${g.id} · ${type}`));
+}
+/* ---------- Circuit ---------- */
+function wires(){const w=[];NET.forEach(g=>g.in.forEach((k,i)=>w.push({from:k,to:pins(g)[i],id:g.id+i})));w.push({from:"s",to:[790,95],id:"os"},{from:"co",to:[790,250],id:"oc"});return w}
+const WIRES=wires();
+function Circuit({types,inputs,setIn,diag,showCone,fixedId,sel,setSel}){
+ const sg=sim(types,inputs),gd=sim(GOLD,inputs),cone=showCone&&diag?diag.cone:null;
+ return h("svg",{className:"circ",viewBox:"0 0 860 400"},
+  WIRES.map((w,i)=>{const[x0,y0]=SP[w.from],[x1,y1]=w.to,mx=Math.max(x0+14,x1-16-(i%5)*8),d=`M${x0},${y0} H${mx} V${y1} H${x1}`,r=cone&&cone.has(w.from);
+   return h("g",{key:w.id},h("path",{className:"wb"+(r?" r":""),d}),sg[w.from]?h("path",{className:"wf"+(r?" r":""),d}):null)}),
+  Object.keys(SP).map(k=>h("circle",{key:k,cx:SP[k][0],cy:SP[k][1],r:3.5,fill:sg[k]?"#22e4ff":"#2a3f66"})),
+  NET.map(g=>h(Gate,{key:g.id,g,type:types[g.id],fault:types[g.id]!==GOLD[g.id],fixed:fixedId===g.id,on:!!sg[g.out],sel:sel===g.id,click:()=>setSel(g.id)})),
+  [["A",60],["B",130],["C",330]].map(([k,y])=>h("g",{key:k,className:"io"+(inputs[k]?" h":""),onClick:()=>setIn(k),transform:`translate(0,${y})`},
+   h("rect",{x:14,y:-15,width:44,height:30,rx:8}),h("text",{x:36,y:5},(k==="C"?"Cin":k)+"="+inputs[k]))),
+  [["s","Sum",95],["co","Cout",250]].map(([k,n,y])=>h("g",{key:k,className:"io"+(sg[k]?" h":"")+(sg[k]!==gd[k]?" bad":""),transform:`translate(0,${y})`,style:{cursor:"default"}},
+   h("rect",{x:790,y:-15,width:60,height:30,rx:8}),h("text",{x:820,y:5},n+"="+sg[k]))));
+}
+/* ---------- Truth table ---------- */
+function Truth({rows,inputs,scan,full,setRow}){
+ const cur=inputs.A*4+inputs.B*2+inputs.C;
+ return h("div",{className:"scroll"},h("table",null,h("thead",null,h("tr",null,["A","B","Cin","Sum",full&&"Exp","Cout",full&&"Exp","✓"].filter(x=>x!==false).map((t,i)=>h("th",{key:i,className:t==="Sum"||t==="✓"?"mid":""},t)))),
+  h("tbody",null,rows.map(r=>h("tr",{key:r.i,className:scan===r.i?"scan":cur===r.i&&scan<0?"live":"",onClick:()=>setRow&&setRow(r.i)},
+   h("td",null,r.A),h("td",null,r.B),h("td",null,r.C),
+   h("td",{className:"mid "+(r.s===r.es?"good":"bad")},r.s),full&&h("td",{style:{color:"var(--mut)"}},r.es),
+   h("td",{className:"mid "+(r.co===r.eco?"good":"bad")},r.co),full&&h("td",{style:{color:"var(--mut)"}},r.eco),
+   h("td",{className:"mid "+(r.ok?"good":"bad")},r.ok?"✓":"✗"))))));
+}
+/* ---------- AI assistant ---------- */
+function Msg({m,tick}){
+ const[n,setN]=useState(0);
+ useEffect(()=>{if(n>=m.text.length){tick();return}const t=setTimeout(()=>{setN(n+2);tick()},16);return()=>clearTimeout(t)},[n]);
+ return h("div",{className:"msg "+m.kind},m.text.slice(0,n),n<m.text.length&&h("span",{className:"caret"}));
+}
+function Assistant({msgs,phase,diag,run,ask,repair}){
+ const box=useRef(),tick=()=>{if(box.current)box.current.scrollTop=box.current.scrollHeight};
+ return h("div",{className:"card chat"},
+  h("h2",null,h("span",{className:"avatar"},h("span",{className:"dot"}),"AI Diagnostic Assistant"),h("span",{className:"tag m mono"},phase)),
+  h("div",{className:"msgs",ref:box},msgs.map(m=>h(Msg,{key:m.id,m,tick}))),
+  diag&&h("div",{className:"chips",style:{margin:"10px 0 0"}},[["why","Why is this wrong?"],["rows","Show failing rows"],["fix","Explain the fix"]].map(([k,t])=>h("button",{key:k,className:"chip",onClick:()=>ask(k)},t))),
+  h("div",{style:{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}},
+   h("button",{className:"btn pri",disabled:phase!=="idle",onClick:run},"⚡ Run AI Diagnosis"),
+   h("button",{className:"btn ok",disabled:phase!=="diagnosed",onClick:repair},"🛠 Repair Circuit")));
+}
+/* ---------- App ---------- */
+let uid=1;
+const hello=()=>({id:uid++,kind:"ai",text:"Diagnostic assistant online. A fault has been injected into the Full Adder. Click inputs on the circuit to probe it, then press “Run AI Diagnosis”."});
+function App(){
+ const[fi,setFi]=useState(0),[types,setTypes]=useState(()=>mk(0)),[inputs,setInputs]=useState({A:0,B:0,C:0}),[phase,setPhase]=useState("idle"),
+  [diag,setDiag]=useState(null),[msgs,setMsgs]=useState([hello()]),[scan,setScan]=useState(-1),[fixed,setFixed]=useState(null),[sel,setSel]=useState("O1"),[sweep,setSweep]=useState(false);
+ const run=useRef(0),ctr=useRef(0),busy=phase==="analyzing"||phase==="repairing";
+ const say=async(list,tok)=>{for(const[t,k]of list){if(run.current!==tok)return false;setMsgs(m=>[...m,{id:uid++,text:t,kind:k}]);await sleep(t.length*8+300)}return run.current===tok};
+ useEffect(()=>{if(!sweep||busy)return;const t=setInterval(()=>{ctr.current=(ctr.current+1)%8;setInputs(vecOf(ctr.current))},1100);return()=>clearInterval(t)},[sweep,busy]);
+ const pick=i=>{run.current++;setFi(i);setTypes(mk(i));setPhase("idle");setDiag(null);setScan(-1);setFixed(null);setSel(FAULTS[i].gate);setMsgs([hello()])};
+ const faulty=mk(fi),rows=table(types),before=table(faulty),pass=rows.filter(r=>r.ok).length,ok=pass===8;
+ async function diagnose(){
+  const tok=++run.current;setPhase("analyzing");const a=analyze(types),g=a.pick.gate,b=a.bad[0],gt=NET.find(x=>x.id===g),sv=sim(types,b),ins=gt.in.map(k=>sv[k]);
+  const outRow=r=>`${r.A}${r.B}${r.C}`,exp=FN[a.pick.type](...ins);
+  const L=[["Capturing all 8 input vectors and comparing each output with the reference full-adder equations: Sum = A ⊕ B ⊕ Cin, Cout = AB + Cin(A ⊕ B).","sys"],
+   [`Mismatch report: ${a.bad.length}/8 rows fail. Incorrect output(s): ${a.outs.join(" and ")}. Failing ABCin rows: ${a.bad.map(outRow).join(", ")}.`,"err"],
+   [`Back-tracing the fan-in cone of the failing output(s). Suspect gates: ${upstream(a.outs.map(o=>o==="Sum"?"s":"co")).join(", ")}.`,"sys"],
+   [`Testing single-gate replacement hypotheses… ${a.cands.length} candidate fix${a.cands.length>1?"es clear":" clears"} every mismatch${a.cands.length>1?`; cross-checking with the reference netlist selects ${g} → ${a.pick.type}`:""}.`,"sys"]];
+  if(!await say(L,tok))return;
+  setDiag(a);setSel(g);
+  const R=[[`Root cause: gate ${g} is implemented as ${a.wrong} but the design requires ${a.pick.type}. It is the ${ROLE[g]}.`,"err"],
+   [`Example: at A=${b.A}, B=${b.B}, Cin=${b.C}, ${g} receives (${ins.join(", ")}) and outputs ${FN[a.wrong](...ins)}; the correct ${a.pick.type} would output ${exp}. The error propagates through ${[...a.cone].join(" → ")}, shown in red on the schematic.`,"ai"],
+   [`Recommended fix: replace ${g} (${a.wrong}) with ${a.pick.type}. Press “Repair Circuit” to apply it and re-verify all 8 combinations.`,"ok"]];
+  if(!await say(R,tok))return;setPhase("diagnosed");
+ }
+ async function repair(){
+  const tok=++run.current,g=diag.pick.gate;setPhase("repairing");
+  if(!await say([[`Applying patch: ${g} ${diag.wrong} → ${diag.pick.type}…`,"sys"]],tok))return;
+  setTypes(t=>({...t,[g]:GOLD[g]}));setFixed(g);setSweep(false);
+  for(let i=0;i<8;i++){if(run.current!==tok)return;setScan(i);setInputs(vecOf(i));await sleep(450)}
+  setScan(-1);setPhase("repaired");
+  await say([["Verification complete: 8/8 input combinations match the reference. Sum and Cout are correct on every row. Status: PASS ✔","ok"]],tok);setFixed(null);
+ }
+ const ask=k=>{const tok=run.current,a=diag;const T={
+  why:`${a.pick.gate} is a ${a.wrong} gate where a ${a.pick.type} is needed (${ROLE[a.pick.gate]}), so the ${a.outs.join("/")} output deviates whenever its inputs hit the cases where the two functions differ.`,
+  rows:a.bad.map(r=>`ABCin=${r.A}${r.B}${r.C}: Sum ${r.s} (exp ${r.es}), Cout ${r.co} (exp ${r.eco})`).join(" | "),
+  fix:`Swapping ${a.pick.gate} back to ${a.pick.type} restores the logic: ${a.bad.length} failing row(s) become 0, and no passing row is disturbed because the full 8-row table is re-simulated after patching.`};
+  say([[T[k],"ai"]],tok)};
+ return h("div",{className:"wrap"},
+  h("header",null,h("div",null,h("h1",null,"AI-Powered Digital Circuit Fault Detection & Diagnosis"),h("div",{className:"sub"},"Full Adder · gate-level simulation · automated root-cause analysis")),
+   h("div",{className:"badge "+(ok?"pass":"fail")},h("span",{className:"dot"}),ok?`PASS · 8/8 VERIFIED`:`FAIL · ${pass}/8 ROWS`)),
+  h("div",{className:"stats"},
+   h("div",{className:"stat"},h("b",null,"Injected fault"),h("span",null,FAULTS[fi].label)),
+   h("div",{className:"stat"},h("b",null,"Faulty gate"),h("span",{className:"mono",style:{color:diag&&!ok?"var(--red)":ok?"var(--green)":"var(--mut)"}},ok?"Repaired":diag?`${diag.pick.gate} (${diag.wrong})`:"Unknown")),
+   h("div",{className:"stat"},h("b",null,"Rows passing"),h("span",{style:{color:ok?"var(--green)":"var(--red)"}},`${pass} / 8`))),
+  h("div",{className:"grid"},
+   h("div",{style:{display:"flex",flexDirection:"column",gap:16,minWidth:0}},
+    h("div",{className:"card"},h("h2",null,"Circuit schematic",h("span",{style:{display:"flex",gap:8}},h("button",{className:"chip"+(sweep?" on":""),disabled:busy,onClick:()=>setSweep(s=>!s)},sweep?"■ Stop sweep":"▶ Auto-sweep inputs"))),
+     h("div",{className:"chips"},FAULTS.map((f,i)=>h("button",{key:f.k,className:"chip"+(fi===i?" on":""),disabled:busy,onClick:()=>pick(i)},f.label+" ("+f.gate+")"))),
+     h(Circuit,{types,inputs,setIn:k=>!busy&&setInputs(v=>({...v,[k]:v[k]^1})),diag,showCone:diag&&!ok,fixedId:fixed,sel,setSel}),
+     (()=>{const g=NET.find(x=>x.id===sel),sg=sim(types,inputs),gs=sim(GOLD,inputs);return h("div",{className:"insp mono"},h("b",null,g.id)," ",types[g.id],types[g.id]!==GOLD[g.id]&&h("span",{style:{color:"var(--red)"}}," (expected "+GOLD[g.id]+")")," · in ("+g.in.map(k=>sg[k]).join(",")+") → out ",h("b",null,sg[g.out])," (golden ",gs[g.out],") — ",ROLE[g.id])})()),
+    h("div",{className:"card"},h("h2",null,"Before / after comparison",h("span",{className:"tag "+(ok?"g":"r")},ok?"FIXED":"FAULT ACTIVE")),
+     h("div",{className:"cmp"},
+      h("div",null,h("div",{style:{marginBottom:6}},h("span",{className:"tag r"},`BEFORE · ${before.filter(r=>r.ok).length}/8 pass`)),h(Truth,{rows:before,inputs,scan:-1,full:false})),
+      h("div",null,h("div",{style:{marginBottom:6}},h("span",{className:"tag "+(ok?"g":"m")},ok?"AFTER · 8/8 pass":"AFTER · awaiting repair")),h("div",{style:{opacity:ok?1:.35,transition:".5s"}},h(Truth,{rows,inputs,scan,full:false})))))),
+   h("div",{style:{display:"flex",flexDirection:"column",gap:16,minWidth:0}},
+    h(Assistant,{msgs,phase,diag,run:diagnose,ask,repair}),
+    h("div",{className:"card"},h("h2",null,"Live truth table",h("span",{className:"tag m"},"click a row to drive inputs")),
+     h(Truth,{rows,inputs,scan,full:true,setRow:i=>!busy&&setInputs(vecOf(i))})))),
+  h("div",{className:"foot"},"Diagnosis runs locally: the assistant simulates every single-gate replacement and cross-checks the reference netlist."));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>
+</body>
+</html>
