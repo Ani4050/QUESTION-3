@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GATESENSE AI</title>
+<style>
+:root{--bg:#0a1226;--p:#111c33;--p2:#162340;--b:#25345a;--ac:#3b82f6;--bl:#38bdf8;--g:#22c55e;--r:#ef4444;--t:#e8eefc;--m:#8fa1c4;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font:15px/1.55 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.app{display:flex;min-height:100vh}
+.side{width:210px;flex:none;background:#0d1730;border-right:1px solid var(--b);padding:16px 10px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+.logo{font-weight:800;letter-spacing:.5px;padding:4px 10px 14px;font-size:16px}.logo b{color:var(--bl)}
+.nav{display:flex;align-items:center;gap:10px;background:none;border:0;color:var(--m);padding:10px;border-radius:9px;font:inherit;cursor:pointer;text-align:left}
+.nav:hover{background:var(--p2);color:var(--t)}.nav.on{background:#1b3a73;color:#fff;box-shadow:inset 3px 0 var(--bl)}
+.main{flex:1;min-width:0;padding:22px 26px 40px;max-width:1100px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:0 0 10px}h3{font-size:14px;margin:0 0 6px;color:var(--bl)}
+.sub{color:var(--m);margin:0 0 18px}
+.card{background:var(--p);border:1px solid var(--b);border-radius:14px;padding:18px;margin-bottom:16px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}.grid .card{margin:0}
+.stat{font-size:28px;font-weight:800}.lbl{color:var(--m);font-size:12px;text-transform:uppercase;letter-spacing:.8px}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:9px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+.btn:hover{filter:brightness(1.12)}.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.o{background:transparent;border:1px solid var(--b);color:var(--t)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{background:var(--p2);border:1px solid var(--b);color:var(--t);border-radius:999px;padding:5px 13px;font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:var(--ac);border-color:var(--bl)}
+textarea{width:100%;min-height:96px;background:#0b1220;border:1px solid var(--b);color:var(--t);border-radius:10px;padding:12px;font:inherit;resize:vertical}
+textarea:focus{outline:2px solid var(--ac)}
+.tt{border-collapse:collapse;width:100%;font-family:ui-monospace,Menlo,monospace}
+.tt th{color:var(--m);text-align:center;border-bottom:1px solid var(--b);padding:7px;font-size:13px}.tt td{text-align:center;padding:6px;border-bottom:1px solid #1c2a4a}
+.bit{display:inline-block;min-width:30px;border-radius:6px;padding:1px 9px;font-weight:700}.b1{background:#14532d;color:#86efac}.b0{background:#4c1d24;color:#fca5a5}
+.tag{font-size:12px;padding:2px 9px;border-radius:999px;font-weight:700;border:1px solid}
+.ok{color:#86efac;border-color:#166534;background:#0f2d1c}.bad{color:#fca5a5;border-color:#7f1d1d;background:#2f1219}.warn{color:#fcd34d;border-color:#78560f;background:#2c2208}
+.sym{background:#0b1220;border:1px solid var(--b);border-radius:12px;padding:8px;max-width:480px}
+.eq{font-family:ui-monospace,monospace;font-size:20px;color:var(--bl);font-weight:700}
+.sw{width:78px;height:78px;border-radius:14px;border:2px solid var(--b);font-size:30px;font-weight:800;cursor:pointer;color:#fff}
+.bar{height:8px;background:#0b1220;border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--bl)}
+.err{color:#fca5a5;background:#2f1219;border:1px solid #7f1d1d;border-radius:10px;padding:10px 12px;margin-top:10px}
+.toast{position:fixed;right:16px;top:calc(12px + env(safe-area-inset-top,0px));background:#1b3a73;border:1px solid var(--bl);padding:10px 14px;border-radius:10px;z-index:20;max-width:80vw}
+details{border-top:1px solid var(--b);padding:8px 0}summary{cursor:pointer}
+ol,ul{margin:6px 0;padding-left:20px}p{margin:6px 0}
+.cols{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+@media(max-width:760px){.app{display:block}.side{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;height:auto;flex-direction:row;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:10}.logo,.nav span{display:none}.nav{padding:10px}.main{padding:16px 14px 100px}.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script>
+const {useState,useMemo}=React,h=React.createElement;
+
+/* ---------- Deterministic Boolean engine (independent gate functions) ---------- */
+const G={
+ AND:{n:2,f:(a,b)=>a&b,eq:"Y = A·B",x:"0001",d:"Output is HIGH only when every input is HIGH."},
+ OR:{n:2,f:(a,b)=>a|b,eq:"Y = A+B",x:"0111",d:"Output is HIGH when at least one input is HIGH."},
+ NOT:{n:1,f:a=>a?0:1,eq:"Y = A'",x:"10",d:"Output is the inverse of the single input."},
+ NAND:{n:2,f:(a,b)=>(a&b)?0:1,eq:"Y = (A·B)'",x:"1110",d:"Output is LOW only when every input is HIGH."},
+ NOR:{n:2,f:(a,b)=>(a|b)?0:1,eq:"Y = (A+B)'",x:"1000",d:"Output is HIGH only when every input is LOW."},
+ XOR:{n:2,f:(a,b)=>a^b,eq:"Y = A⊕B",x:"0110",d:"Output is HIGH when the inputs differ."},
+ XNOR:{n:2,f:(a,b)=>(a^b)?0:1,eq:"Y = (A⊕B)'",x:"1001",d:"Output is HIGH when the inputs are equal."}
+};
+const NAMES=Object.keys(G);
+const combos=g=>G[g].n==1?[[0],[1]]:[[0,0],[0,1],[1,0],[1,1]];
+const rowsOf=g=>combos(g).map(r=>({in:r,y:G[g].f(...r)}));
+/* Verification compares gate functions with hard-coded expected tables (G[g].x) */
+function runTests(){
+ const gates=NAMES.map(g=>{const rows=combos(g).map((r,i)=>{const act=G[g].f(...r),exp=+G[g].x[i];return{in:r,exp,act,ok:act===exp}});return{g,rows,pass:rows.filter(r=>r.ok).length}});
+ const total=gates.reduce((s,x)=>s+x.rows.length,0),passed=gates.reduce((s,x)=>s+x.pass,0);
+ return{gates,total,passed,failed:total-passed};
+}
+
+/* ---------- Standard gate symbols as SVG string (also used for export) ---------- */
+function svgOf(g,a=0,b=0){
+ const c=G[g],y=c.f(a,b),col=v=>v?"#22c55e":"#64748b",bub=["NAND","NOR","XNOR","NOT"].includes(g),ex=g=="NOT"?130:140,ox=bub?ex+12:ex;
+ const wx={AND:60,NAND:60,OR:64,NOR:64,XOR:54,XNOR:54,NOT:60}[g];
+ const body=g=="NOT"?"M60 25L60 95L130 60Z":g.endsWith("AND")?"M60 20H100A40 40 0 0 1 100 100H60Z":"M55 20Q95 20 140 60Q95 100 55 100Q80 60 55 20Z";
+ let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" width="100%" role="img" aria-label="${g} gate circuit"><rect width="240" height="120" fill="#0b1220"/><g fill="none" stroke-width="3" stroke-linecap="round">`;
+ (c.n==2?[[40,a,"A"],[80,b,"B"]]:[[60,a,"A"]]).forEach(([yy,v,l])=>{s+=`<path d="M12 ${yy}H${wx}" stroke="${col(v)}"/><circle cx="12" cy="${yy}" r="4" fill="${col(v)}" stroke="none"/><text x="22" y="${yy-7}" fill="#cbd5e1" stroke="none" font-size="12" font-family="monospace">${l}=${v}</text>`});
+ s+=`<path d="${body}" stroke="#38bdf8" fill="#12203d" stroke-linejoin="round"/>`;
+ if(g=="XOR"||g=="XNOR")s+=`<path d="M45 20Q70 60 45 100" stroke="#38bdf8"/>`;
+ if(bub)s+=`<circle cx="${ex+6}" cy="60" r="6" stroke="#38bdf8" fill="#0b1220" stroke-width="2.5"/>`;
+ s+=`<path d="M${ox} 60H212" stroke="${col(y)}"/><circle cx="214" cy="60" r="4" fill="${col(y)}" stroke="none"/><text x="196" y="50" fill="#cbd5e1" stroke="none" font-size="12" font-family="monospace">Y=${y}</text><text x="100" y="114" fill="#38bdf8" stroke="none" font-size="11" text-anchor="middle" font-family="monospace">${g}</text></g></svg>`;
+ return s;
+}
+
+/* ---------- Small reusable components ---------- */
+const P={dash:"M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z",id:"M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z",tt:"M3 3h18v18H3zM3 9h18M3 15h18M9 3v18",ci:"M6 6h12v12H6zM9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4",sw:"M7 7h10a5 5 0 0 1 0 10H7A5 5 0 0 1 7 7zM17 12h.01",ver:"M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5zM9 12l2 2 4-4",doc:"M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4zM4 16a4 4 0 0 1 4-4h12",dl:"M12 3v12M7 10l5 5 5-5M4 21h16"};
+const Icon=({p})=>h("svg",{width:18,height:18,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":true},h("path",{d:p}));
+const Bit=({v,w})=>h("span",{className:"bit "+(v?"b1":"b0")},v,w?(v?" HIGH":" LOW"):"");
+const Sym=({g,a,b})=>h("div",{className:"sym",dangerouslySetInnerHTML:{__html:svgOf(g,a,b)}});
+const GateSel=({g,set})=>h("div",{className:"row"},NAMES.map(n=>h("button",{key:n,className:"chip"+(n==g?" on":""),onClick:()=>set(n)},n)));
+const TT=({g})=>h("table",{className:"tt"},h("thead",null,h("tr",null,(G[g].n==2?["A","B"]:["A"]).map(x=>h("th",{key:x},x)),h("th",null,"Y"))),
+ h("tbody",null,rowsOf(g).map((r,i)=>h("tr",{key:i},r.in.map((v,j)=>h("td",{key:j},h(Bit,{v}))),h("td",null,h(Bit,{v:r.y,w:1}))))));
+const Switch=({l,v,set})=>h("div",{style:{textAlign:"center"}},h("div",{className:"lbl"},"Input "+l),
+ h("button",{className:"sw",style:{background:v?"#15803d":"#7f1d1d",borderColor:v?"#22c55e":"#ef4444"},"aria-pressed":!!v,"aria-label":"Input "+l+" is "+v+", click to toggle",onClick:()=>set(v?0:1)},v),h("div",{className:"lbl"},v?"HIGH":"LOW"));
+
+/* ---------- Content ---------- */
+const DOCS=[
+["Logic gates","A logic gate is a digital circuit that maps one or two binary inputs (0 = LOW, 1 = HIGH) to one binary output. This project covers AND, OR, NOT, NAND, NOR, XOR and XNOR."],
+["Boolean algebra","Boolean algebra describes gate behaviour with algebraic operators: · (AND), + (OR), ' (NOT) and ⊕ (XOR). Each gate has one equation, e.g. NAND is Y = (A·B)'. De Morgan’s laws relate them: (A·B)' = A'+B' and (A+B)' = A'·B'."],
+["Truth tables","A truth table lists every input combination with its output. n inputs give 2ⁿ rows: four rows for each two-input gate and two for NOT, so 6×4 + 2 = 26 test cases in total."],
+["NLP classification","Natural-language classification maps free text such as “output is HIGH only when both inputs are HIGH” to a category (a gate). Here a rule-based classifier does it with weighted regular-expression patterns over output level, input level and quantifiers (both, either, neither, exactly one, equal). Ties, vague wording and unsupported circuits are rejected."],
+["Generative AI","Generative AI models write text or labels from prompts. GATESENSE AI deliberately does not use one: identification is deterministic, so the same sentence always gives the same result, with no API key, no network and no hallucination risk."],
+["Circuit construction","Each gate uses a standard symbol: a flat-backed D shape for AND, a curved shield for OR, an extra back arc for XOR, a triangle for NOT, and a small bubble on the output for inversion (NAND, NOR, XNOR, NOT)."],
+["Verification","Every gate is run through its own JavaScript function for all input rows and compared with an independently written expected output string. No AI is involved at any stage. A gate passes only when all its rows match."]];
+const EXAMPLES=["Output is HIGH only when both inputs are HIGH.","The alarm sounds if either door sensor is triggered.","The output is the opposite of the single input.","Output is LOW only when both inputs are HIGH.","Output is HIGH when exactly one of the two inputs is HIGH.","Output is HIGH when the inputs are equal.","The output sometimes goes high."];
+const NAMEOF={AND:"AND Gate",OR:"OR Gate",NOT:"NOT Gate (inverter)",NAND:"NAND Gate",NOR:"NOR Gate",XOR:"XOR Gate",XNOR:"XNOR Gate"};
+function guide(g){
+ const n=G[g].n,two=n==2;
+ return{comps:[`${n} × Input pin (label ${two?"A and B":"A"}), 1 bit each`,`1 × ${NAMEOF[g].replace(" (inverter)","")} from the Gates library${g=="NOT"?" (NOT Gate)":""}, ${two?"2 inputs, data bits = 1":"data bits = 1"}`,"1 × Output pin (label Y), 1 bit","Wires between them"],
+ steps:[two?"Place two Input pins and set their labels to A and B.":"Place one Input pin and set its label to A.","Place the "+g+" gate from the Gates folder in the Explorer pane.",two?"Wire A to the gate’s upper input and B to its lower input.":"Wire A to the gate’s input.","Place an Output pin labelled Y and wire it to the gate output.","Use the Poke tool to toggle the inputs and read Y for each row.","Compare each Y with the truth table below."]};
+}
+
+/* ---------- Rule-based NLP gate classifier (deterministic, no AI, no network) ---------- */
+const H="\\b(?:high|1|on|true|active|triggered|pressed|closed)\\b",L="\\b(?:low|0|off|false|inactive|released|open)\\b",W="\\b(?:when|if|whenever)\\b",B="(?<!\\bnot\\s)\\b(?:both|all|every|each)\\b",E="\\b(?:either|any|at least one)\\b",EQ="(?<!\\bnot\\s)(?<!\\bnot\\sthe\\s)\\b(?:equal|same|identical|matches?|agree)\\b",DF="\\b(?:differs?|different|unequal|opposite|not (?:the )?same|not equal)\\b",X="[^.]*";
+const R=(g,w,x)=>[g,w,new RegExp(x,"i")];
+const RULES=[
+R("AND",5,"\\band gate\\b|\\bconjunction\\b"),R("AND",4,H+X+W+X+B+X+H),R("AND",4,L+X+W+X+E+X+L),R("AND",2,B),
+R("OR",5,"\\bor gate\\b|\\bdisjunction\\b"),R("OR",3,"\\b(?:either|at least one|one or more)\\b|\\bany (?:one )?(?:of|input)\\b"),R("OR",4,L+X+W+X+"\\b(?:both|all)\\b"+X+L),R("OR",2,"\\bany\\b|\\bor\\b"),
+R("NOT",5,"\\bnot gate\\b|\\binverter\\b"),R("NOT",4,"\\b(?:inverts?|inverted|inversion|complements?|negates?|flips?|reverses?|opposite (?:of|to)|inverse of)\\b"),R("NOT",3,"\\b(?:single|one|1)[- ]inputs?\\b|\\bnot (?:the )?input\\b"),
+R("NAND",5,"\\bnand\\b"),R("NAND",4,L+X+W+X+B+X+H),R("NAND",4,"\\bnot\\s+(?:both|all|every)\\b"),R("NAND",4,H+X+"\\b(?:unless|except)\\b"+X+"\\b(?:both|all)\\b"),R("NAND",4,H+X+W+X+E+X+L),
+R("NOR",5,"\\bnor\\b|\\bneither\\b"),R("NOR",4,H+X+W+X+"\\b(?:both|all|every)\\b"+X+L),R("NOR",4,"\\b(?:no|none of the)\\s+inputs?\\s+(?:is|are)?\\s*"+H),R("NOR",4,L+X+W+X+E+X+H),
+R("XOR",5,"\\bxor\\b|\\bexclusive[- ]or\\b"),R("XOR",5,"\\b(?:exactly|only) one\\b|\\bone but not both\\b|\\beither\\b[^.]*\\bbut not both\\b|\\bodd number\\b"),R("XOR",4,H+X+W+X+DF),R("XOR",4,L+X+W+X+EQ),
+R("XNOR",5,"\\bxnor\\b|\\bexclusive[- ]nor\\b|\\bequivalence\\b|\\bcoincidence\\b"),R("XNOR",4,H+X+W+X+EQ),R("XNOR",4,L+X+W+X+DF)];
+const UNSUP=/flip[- ]?flop|latch|adder|subtractor|multiplex|\bmux\b|demux|decoder|encoder|counter|register|memory|clock|sequential|comparator|more than two|\b(?:three|four|five|[3-9])[- ](?:inputs?|switches|sensors|signals|buttons)\b/i;
+const VOCAB=/\b(?:inputs?|outputs?|high|low|signal|switch(?:es)?|sensors?|buttons?|gate|logic|true|false|both|either|neither|equal|same|differ\w*|invert\w*|opposite|on|off)\b/i;
+function classify(t){
+ const no=(status,clar)=>({status,gate:null,conf:0,exp:"",clar});
+ if(UNSUP.test(t))return no("unsupported","This looks like sequential, arithmetic or more-than-two-input logic. Only the seven basic gates (AND, OR, NOT, NAND, NOR, XOR, XNOR) are supported.");
+ if(!VOCAB.test(t))return no("unsupported","This does not read as a logic condition. Describe how the output depends on the inputs.");
+ const best={};
+ for(const[g,w,re]of RULES){const m=re.exec(t);if(m&&(!best[g]||w>best[g].w))best[g]={w,m:m[0].replace(/\s+/g," ").slice(0,70)}}
+ const hits=Object.entries(best).sort((x,y)=>y[1].w-x[1].w);
+ if(!hits.length)return no("ambiguous","I could not tie this to a single gate. Say when the output is HIGH or LOW and what the inputs must be, e.g. “output is HIGH only when both inputs are HIGH”.");
+ const[g,top]=hits[0],nxt=hits[1];
+ if(nxt&&nxt[1].w>=top.w)return no("ambiguous","The description fits both "+g+" and "+nxt[0]+". State exactly when the output is HIGH and which input levels are required.");
+ if(top.w<3&&/\b(?:not|low|off|0|never|unless|except|neither|nor)\b/i.test(t))return no("ambiguous","The wording is too loose to pick a gate safely. Say what the output level is for each input condition.");
+ const conf=({5:96,4:88,3:78,2:60})[top.w]-(nxt&&nxt[1].w>=3?12:0);
+ return{status:"identified",gate:g,conf,exp:"Matched the phrase “"+top.m+"”. "+G[g].d,clar:""};
+}
+
+/* ---------- App ---------- */
+function App(){
+ const[v,setV]=useState("dash"),[g,setG]=useState("AND"),[a,setA]=useState(0),[b,setB]=useState(0),[txt,setTxt]=useState(""),[ai,setAi]=useState(null),[err,setErr]=useState(""),[msg,setMsg]=useState(""),[run,setRun]=useState(0);
+ const res=useMemo(runTests,[run]);
+ const toast=m=>{setMsg(m);setTimeout(()=>setMsg(""),3500)};
+ const two=G[g].n==2,out=G[g].f(a,two?b:0);
+ const save=async(name,data)=>{try{const d=window.claude&&await claude.use("downloads");if(!d)return toast("Downloads are not available in this view.");await d.save({filename:name,data});toast("Export ready: "+name)}catch(e){toast(e&&e.code=="declined"?"Download cancelled.":"Export failed: "+((e&&e.message)||e))}};
+ const csv=list=>"Gate,A,B,Y\n"+list.flatMap(n=>rowsOf(n).map(r=>[n,r.in[0],G[n].n==2?r.in[1]:"",r.y].join(","))).join("\n")+"\n";
+ const eqTxt=()=>"GATESENSE AI - Boolean equations\n\n"+NAMES.map(n=>`${n.padEnd(5)} ${G[n].eq}${n==g?"   <- selected":""}`).join("\n")+"\n";
+ const md=()=>`# GATESENSE AI - Project Summary\n\nDigital Logic Gate Identifier from Natural Language (Digital Electronics project P2)\n\n## Selected gate\n- Gate: ${g}\n- Equation: \`${G[g].eq}\`\n- Meaning: ${G[g].d}\n\n## Gate identification (rule-based NLP, no AI)\n${ai&&ai.status=="identified"?`- Input: "${ai.text}"\n- Result: ${ai.gate}, confidence ${ai.conf}%\n- Explanation: ${ai.exp}`:"- No identification has been run in this session."}\n\n## Truth table (${g})\n| ${two?"A | B":"A"} | Y |\n|${two?"---|---":"---"}|---|\n${rowsOf(g).map(r=>"| "+r.in.join(" | ")+" | "+r.y+" |").join("\n")}\n\n## Verification (computed in this session)\n- Total tests: ${res.total}\n- Passed: ${res.passed}\n- Failed: ${res.failed}\n- Status: ${res.failed?"FAIL":"PASS"}\n${res.gates.map(x=>`- ${x.g}: ${x.pass}/${x.rows.length}`).join("\n")}\n\nNote: Logisim comparison is a manual step; Logisim was not executed by this app.\n`;
+ const exps={csvSel:["Truth table CSV (selected)",()=>save(`truth-table-${g}.csv`,csv([g]))],csvAll:["Truth table CSV (all 26)",()=>save("truth-table-all.csv",csv(NAMES))],txt:["Equations TXT",()=>save("boolean-equations.txt",eqTxt())],svg:["Circuit SVG",()=>save(`circuit-${g}.svg`,svgOf(g,a,two?b:0))],md:["Summary Markdown",()=>save("gatesense-summary.md",md())]};
+ const Exp=({k})=>h("button",{className:"btn o",onClick:exps[k][1]},h(Icon,{p:P.dl}),exps[k][0]);
+
+ function identify(){
+  const t=txt.trim();
+  if(t.length<8||!/[a-z]/i.test(t))return setErr("Enter a description of at least 8 characters that contains words.");
+  if(t.length>400)return setErr("Keep the description under 400 characters.");
+  setErr("");
+  const r=classify(t);
+  setAi({...r,text:t,inputs:r.gate?(G[r.gate].n==1?["A"]:["A","B"]):[]});
+  if(r.gate){setG(r.gate);setA(0);setB(0)}
+ }
+
+ const NAV=[["dash","Dashboard",P.dash],["id","Gate Identifier",P.id],["tt","Truth Table",P.tt],["ci","Circuit Visualizer",P.ci],["sw","Logic Tester",P.sw],["ver","Verification",P.ver],["doc","Documentation",P.doc]];
+ const head=(t,s)=>h("div",null,h("h1",null,t),h("p",{className:"sub"},s));
+ const status=res.failed?h("span",{className:"tag bad"},"FAIL"):h("span",{className:"tag ok"},"ALL PASS");
+ const eqBlock=h("div",null,h("div",{className:"eq"},G[g].eq),h("p",{style:{color:"var(--m)"}},G[g].d));
+ const Sw=h("div",{className:"row",style:{gap:24}},h(Switch,{l:"A",v:a,set:setA}),two&&h(Switch,{l:"B",v:b,set:setB}),h("div",{style:{textAlign:"center"}},h("div",{className:"lbl"},"Output Y"),h("div",{className:"sw",style:{display:"flex",alignItems:"center",justifyContent:"center",background:out?"#15803d":"#7f1d1d",borderColor:out?"#22c55e":"#ef4444"}},out),h("div",{className:"lbl"},out?"HIGH":"LOW")));
+
+ let view;
+ if(v=="dash")view=h("div",null,head("Dashboard","Describe a condition in English, identify the gate, then inspect and verify it."),
+  h("div",{className:"grid",style:{marginBottom:16}},
+   h("div",{className:"card"},h("div",{className:"lbl"},"Gates supported"),h("div",{className:"stat"},NAMES.length)),
+   h("div",{className:"card"},h("div",{className:"lbl"},"Test cases"),h("div",{className:"stat"},res.total)),
+   h("div",{className:"card"},h("div",{className:"lbl"},"Passed / failed"),h("div",{className:"stat"},res.passed," / ",res.failed)),
+   h("div",{className:"card"},h("div",{className:"lbl"},"Verification status"),h("div",{style:{marginTop:8}},status))),
+  h("div",{className:"cols"},
+   h("div",{className:"card"},h("h2",null,"Selected gate: "+g),h(GateSel,{g,set:x=>{setG(x);setA(0);setB(0)}}),h("div",{style:{margin:"12px 0"}},eqBlock),h(Sym,{g,a:0,b:0})),
+   h("div",{className:"card"},h("h2",null,"Identification engine"),h("p",null,"Gate identification uses a ",h("b",null,"deterministic rule-based NLP classifier")," that runs entirely in your browser. No AI, API or network is involved. Truth tables, outputs and verification are also plain JavaScript."),
+    h("div",{className:"row",style:{margin:"10px 0"}},h("button",{className:"btn",onClick:()=>setV("id")},"Identify a gate"),h("button",{className:"btn o",onClick:()=>setV("ver")},"View verification")),
+    h("h3",null,"Exports"),h("div",{className:"row"},h(Exp,{k:"csvAll"}),h(Exp,{k:"txt"}),h(Exp,{k:"svg"}),h(Exp,{k:"md"})))));
+ if(v=="id")view=h("div",null,head("Gate Identifier","A deterministic rule-based NLP engine classifies your description locally. No AI or network is used. Ambiguous or unsupported text is rejected, not guessed."),
+  h("div",{className:"card"},h("textarea",{value:txt,maxLength:400,placeholder:"e.g. Output is HIGH only when both inputs are HIGH.","aria-label":"Logic condition in plain English",onChange:e=>setTxt(e.target.value)}),
+   h("div",{className:"row",style:{margin:"10px 0"}},EXAMPLES.map(x=>h("button",{key:x,className:"chip",onClick:()=>{setTxt(x);setErr("")}},x.length>34?x.slice(0,32)+"…":x))),
+   h("div",{className:"row"},h("button",{className:"btn",onClick:identify},h(Icon,{p:P.id}),"Identify gate"),h("span",{className:"lbl"},txt.trim().length+"/400")),
+   err&&h("div",{className:"err",role:"alert"},err)),
+  ai&&h("div",{className:"card"},h("div",{className:"row",style:{marginBottom:10}},h("h2",{style:{margin:0}},ai.gate?ai.gate+" gate":"No gate selected"),
+    h("span",{className:"tag "+(ai.status=="identified"?"ok":ai.status=="ambiguous"?"warn":"bad")},ai.status=="identified"?"Identified":ai.status=="ambiguous"?"Needs clarification":"Unsupported")),
+   ai.gate&&h("div",{className:"cols"},h("div",null,h("h3",null,"Boolean equation"),h("div",{className:"eq"},G[ai.gate].eq),h("h3",{style:{marginTop:12}},"Input variables"),h("p",null,ai.inputs.join(", ")),h("h3",null,"Explanation"),h("p",null,ai.exp),h("h3",null,"Rule confidence · "+ai.conf+"%"),h("div",{className:"bar"},h("i",{style:{width:ai.conf+"%"}})),
+     h("div",{className:"row",style:{marginTop:12}},h("button",{className:"btn",onClick:()=>setV("tt")},"Truth table"),h("button",{className:"btn o",onClick:()=>setV("ci")},"Circuit"))),h(Sym,{g:ai.gate,a:0,b:0})),
+   !ai.gate&&h("div",null,h("h3",null,"Clarification"),h("p",null,ai.clar||ai.exp||"Please rephrase the condition."),h("p",{style:{color:"var(--m)"}},"The gate was not changed. Rephrase and try again, or select one below.")),
+   h("p",{className:"lbl",style:{marginTop:12}},"Classification, equation and truth table are all computed locally by deterministic code. No AI is used.")),
+  h("div",{className:"card"},h("h3",null,"Or select a gate manually"),h(GateSel,{g,set:x=>{setG(x);setA(0);setB(0)}})));
+ if(v=="tt")view=h("div",null,head("Truth Table","Generated from the deterministic gate function for every input combination."),
+  h("div",{className:"card"},h(GateSel,{g,set:setG}),h("div",{style:{margin:"12px 0"}},eqBlock),h("div",{style:{maxWidth:420}},h(TT,{g})),h("div",{className:"row",style:{marginTop:14}},h(Exp,{k:"csvSel"}),h(Exp,{k:"csvAll"}),h(Exp,{k:"txt"}))));
+ if(v=="ci")view=h("div",null,head("Circuit Visualizer","Standard gate symbol. Wires turn green when HIGH and grey when LOW."),
+  h("div",{className:"card"},h(GateSel,{g,set:x=>{setG(x);setA(0);setB(0)}}),h("div",{className:"cols",style:{margin:"14px 0"}},h(Sym,{g,a,b:two?b:0}),h("div",null,eqBlock,h("div",{style:{marginTop:12}},Sw))),h(Exp,{k:"svg"})));
+ if(v=="sw")view=h("div",null,head("Logic Tester","Click the switches to set inputs. The output updates immediately."),
+  h("div",{className:"card"},h(GateSel,{g,set:x=>{setG(x);setA(0);setB(0)}}),h("div",{className:"cols",style:{margin:"14px 0"}},h("div",null,Sw,h("p",{className:"eq",style:{marginTop:16}},G[g].eq.replace("Y = ","")+" → "+(two?a+" , "+b:a)+" → Y = "+out)),h(TT,{g}))));
+ if(v=="ver")view=h("div",null,head("Verification","Every gate is run for all input rows and compared with an independent expected table."),
+  h("div",{className:"grid",style:{marginBottom:16}},
+   h("div",{className:"card"},h("div",{className:"lbl"},"Passed"),h("div",{className:"stat",style:{color:"#86efac"}},res.passed)),
+   h("div",{className:"card"},h("div",{className:"lbl"},"Failed"),h("div",{className:"stat",style:{color:res.failed?"#fca5a5":"var(--t)"}},res.failed)),
+   h("div",{className:"card"},h("div",{className:"lbl"},"Total tests"),h("div",{className:"stat"},res.total)),
+   h("div",{className:"card"},h("div",{className:"lbl"},"Final status"),h("div",{style:{marginTop:8}},status))),
+  h("div",{className:"card"},res.gates.map(x=>h("details",{key:x.g,open:x.g==g},h("summary",null,h("b",null,x.g)," ",h("span",{className:"eq",style:{fontSize:14}},G[x.g].eq)," ",h("span",{className:"tag "+(x.pass==x.rows.length?"ok":"bad")},x.pass+"/"+x.rows.length+(x.pass==x.rows.length?" PASS":" FAIL"))),
+    h("table",{className:"tt",style:{maxWidth:480}},h("thead",null,h("tr",null,h("th",null,"Inputs"),h("th",null,"Expected"),h("th",null,"Actual"),h("th",null,"Result"))),
+     h("tbody",null,x.rows.map((r,i)=>h("tr",{key:i},h("td",null,r.in.join(" ")),h("td",null,h(Bit,{v:r.exp})),h("td",null,h(Bit,{v:r.act})),h("td",null,h("span",{className:"tag "+(r.ok?"ok":"bad")},r.ok?"PASS":"FAIL")))))))),
+   h("div",{className:"row",style:{marginTop:12}},h("button",{className:"btn",onClick:()=>{setRun(run+1);toast("Re-ran all "+res.total+" tests.")}},"Re-run all tests"),h(Exp,{k:"md"}))));
+ if(v=="doc"){const gd=guide(g);view=h("div",null,head("Documentation","Concepts used in this project and a manual Logisim comparison guide."),
+  h("div",{className:"card"},h("h2",null,"Logisim guide: "+g),h(GateSel,{g,set:setG}),
+   h("p",{className:"lbl",style:{marginTop:10}},"Manual comparison only. This app does not run Logisim."),
+   h("div",{className:"cols"},h("div",null,h("h3",null,"Components"),h("ul",null,gd.comps.map((c,i)=>h("li",{key:i},c))),h("h3",null,"Connections and steps"),h("ol",null,gd.steps.map((c,i)=>h("li",{key:i},c)))),h("div",null,h("h3",null,"Expected truth table · "+G[g].eq),h(TT,{g})))),
+  h("div",{className:"grid"},DOCS.map(([t,x])=>h("div",{className:"card",key:t},h("h3",null,t),h("p",null,x)))));}
+
+ return h("div",{className:"app"},
+  h("nav",{className:"side","aria-label":"Main"},h("div",{className:"logo"},"GATESENSE ",h("b",null,"AI")),NAV.map(([k,l,p])=>h("button",{key:k,className:"nav"+(v==k?" on":""),title:l,"aria-label":l,onClick:()=>setV(k)},h(Icon,{p}),h("span",null,l)))),
+  h("main",{className:"main"},view),msg&&h("div",{className:"toast",role:"status"},msg));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+</script>
+</body>
+</html>
